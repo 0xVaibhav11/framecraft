@@ -4,3 +4,4 @@ export * from './rpc.js';
 export * from './abi.js';
 export * from './tree.js';
 export * from './wallet.js';
+export * from './prover.js';

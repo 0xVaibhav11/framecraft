@@ -35,3 +35,5 @@ test-results/
 /AGENT_HANDOFF.md
 /plan.md
 .DS_Store
+
+.nx

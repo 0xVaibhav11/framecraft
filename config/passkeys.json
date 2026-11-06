@@ -1,0 +1,13 @@
+{
+  "local": {
+    "network": "local",
+    "genesisHash": "0x021b2fad378f1f4213be69607bc3ec25a8a3219311b3f246031c87e35944be5f",
+    "factory": "0xCf44CA3178ba9f9E012f179eFEB9816103271e58",
+    "factoryCodeHash": "0xc468ebad14538e67cd0e83f930e4b8a41946bba834a00a55b670823e32fd2b5d",
+    "transactionHash": "0x744f13ea07e37b7b04d17d9b7398f2faf58666251c6632602371aeae6aaf122f",
+    "verifier": "OpenZeppelin WebAuthn/P256 5.6.1",
+    "nativeP256": true,
+    "sourceSha256": "81bb7bb784407012a36db0f137194fbf721fc5ff9c23fea45d61c6e62d15e759"
+  },
+  "public": null
+}

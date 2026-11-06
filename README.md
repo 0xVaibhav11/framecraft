@@ -4,7 +4,7 @@ A developer SDK and reference DeFi app designed to bring post-quantum vault auth
 
 The project lets applications offer users a smart-account vault that can authorize actions with a post-quantum key and transfer or trade tokens without holding ETH for gas. An application-funded paymaster covers the network gas cost.
 
-**Status:** In design; implementation has not started.
+**Status:** Early development. A typed viem SDK prototype, Next.js documentation and interactive local-devnet playground, environment inspection, and frame-transaction smoke tooling are implemented. Live SDK execution remains unverified; PQ vault authorization, paymaster adapters, and Aqua integration are planned.
 
 ## What the kit provides
 
@@ -13,6 +13,7 @@ The project lets applications offer users a smart-account vault that can authori
 - **Atomic application operations:** same-chain action groups designed to complete together or revert their application state changes.
 - **Aqua/SwapVM integration:** a recurring, partially fillable buy position with price, spending, and expiry limits.
 - **Developer SDK:** a shared interface for preparing, signing, simulating, submitting, and tracking frame transactions.
+- **Developer documentation and playground:** searchable API guides and an interactive prepare, sign, submit, and inspect workflow for local frame transactions.
 - **Reference vault app:** a user-facing demonstration of the SDK's transfer and trading flows.
 
 ## How the pieces fit

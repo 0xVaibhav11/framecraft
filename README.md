@@ -4,7 +4,9 @@ A developer SDK and reference DeFi app designed to bring post-quantum vault auth
 
 The project lets applications offer users a smart-account vault that can authorize actions with a post-quantum key and transfer or trade tokens without holding ETH for gas. An application-funded paymaster covers the network gas cost.
 
-**Status:** Early development. A typed viem SDK, Next.js docs and playground with local/public devnet selection, transfer composition, and deployment tooling are implemented. A test paymaster contract limits each sponsored transaction's maximum cost, with local and public deployments recorded in `config/paymasters.json`. The local explorer reports a three-frame transaction admitted and included with the deployed paymaster as payer; full frame execution results and gas charges remain to be checked. PQ vault authorization, token-fee paymaster adapters, and Aqua integration are planned.
+**Status:** Early development. The viem SDK, network-aware playground, bounded test paymaster and recurring Aqua/SwapVM buy position are implemented. The local demo verified four sponsored frame swaps exchanging 25 test-USDC-equivalent tokens for 2.5 test-asset tokens, with zero ETH held by the taker. Successful frame receipts, token balance changes and period/total-limit rejection checks are recorded in `evidence/aqua/`. PQ vault authorization, token-fee reimbursement and a swap UI remain planned.
+
+Run the contract tests with `npm run aqua:test` and the local swap demo with `npm run aqua:demo` after [Aqua setup](docs/aqua-recurring-buy.md). The guide includes source pins, deployment details, strategy rules and evidence links.
 
 ## What the kit provides
 

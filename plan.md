@@ -4,7 +4,7 @@ This document records how we intend to build the project, why we choose each com
 
 ## Current status
 
-**Milestone 1 is in progress, with the first viem SDK prototype implemented alongside it.** FramePay includes typed prepare/sign/submit/receipt/admission actions, a Next.js documentation site and local/public-devnet playground, source fingerprint checks, local environment inspection, and a baseline frame-transfer runner using the SDK. A bounded open test paymaster contract and deployment tooling are implemented, with local and public deployment records and user-supplied local explorer evidence of sponsored admission and inclusion. Full frame receipts, gas charges, runtime image identification, and official Aqua/SwapVM execution remain outstanding. PQ vaults, production sponsorship policies and the DeFi reference app remain planned; the SDK package is private and unpublished.
+**The shared frame/Aqua execution environment is proven locally; runtime image pinning remains open.** FramePay includes typed prepare/sign/submit/receipt/admission actions, a Next.js documentation site and local/public-devnet playground, a bounded test paymaster, and a custom recurring-buy SwapVM using official Aqua settlement. Four local sponsored swaps have successful type-0x06 receipts and verified token balance changes, with a zero-ETH taker. PQ vaults, production sponsorship policies and a swap UI remain planned; the SDK package is private and unpublished.
 
 ## Build record
 
@@ -171,6 +171,20 @@ Each was initially funded with 0.01 test ETH and limits maximum transaction cost
 **User-supplied local evidence:** [transaction `0x9a76fe4ce02bcba5f65b750149da2fe1e48e33765cc1d696539013ef8204a4f6`](http://localhost:5173/tx/0x9a76fe4ce02bcba5f65b750149da2fe1e48e33765cc1d696539013ef8204a4f6) was reported on chain by Sidecar v4.1.1 with manual bundling. All admission rules passed, including 7/7 sender checks and 7/7 payer checks. The frames were sender execution approval, payment approval by `0xb460…31C1`, and a user operation transferring 301,000,000,000,000 wei (0.000301 ETH). The explorer recorded admission at 15:03:45.363 and inclusion at 15:03:57.322.
 
 The excerpt establishes reported admission and inclusion with the deployed paymaster as payer. Its frame-status cells were empty, so per-frame execution results and actual gas charges are not independently verified here. Public sponsored execution also remains unverified.
+
+### November 6, 2026 — recurring Aqua/SwapVM buys through local frames
+
+**Implemented:** `FramePayRecurringSwapVM` inherits the official SwapVM engine and adds one mandatory recurring-buy instruction (`0xe0`). Its canonical Aqua order binds the token pair, start-anchored period, exclusive expiry, per-period budget, lifetime budget, fixed rate and salt. Exact-output partial fills round the required buy-token input up in the maker's favor. There is no carryover; accounting persists across periods and cannot be reset by topping up liquidity. Aqua docking cancels the order. All settlement occurs inside the official SwapVM call using Aqua pull/push; a failed outgoing transfer rolls back the preceding incoming transfer and capacity changes.
+
+**Sources:** SwapVM revision `f9f4acfed0ffa321c2108efe05ecf7a5e0bd8abc`, official `@1inch/aqua@1.0.2-rc.2`, solidity-utils 7.0.3 and OpenZeppelin 5.6.1. `config/aqua-sources.json` records Solidity tree fingerprints. Bootstrap/build/test scripts compile this integration separately with solc 0.8.30, Prague, viaIR, optimizer 600; the paymaster's existing compiler is unchanged.
+
+**Deployment finding:** the first legacy SwapVM deployment reverted at 16,777,216 gas. Its roughly 20 KB runtime requires about 32M state gas on this EIP-8037 devnet. A minimal CREATE2 factory and a canonical type-0x06 creation frame with a 40M state budget deployed the same router successfully. The creation uses the gateway's raw-transaction route because it exceeds the standard sidecar's 25M total admission budget. Position shipping, taker approval and all four swap fills use the SDK's standard alternative-mempool route. No node configuration, state injection or timestamp override was used.
+
+**Live verification:** `evidence/aqua/local-1793961624863.json` records official Aqua at `0x65a187Ba645d089E18581BA3b9F3F18F06ad6B3f`, recurring SwapVM at `0x67d2F5b370F952305A2688e0AB79bD61796D105A`, two fixed-supply ERC-20s, all transaction receipts and source provenance. Fills of 6, 4, 10 and 5 fpUSD bought 0.6, 0.4, 1 and 0.5 fpASSET over three real 60-second periods. Every fill has three successful frames. The taker's ETH stayed zero, the recorded local paymaster approved payment, and its balance decreased. Read-only quote probes returned `CapacityExceeded` after period exhaustion and total-budget exhaustion. The final fill is `0x9d961b4d46fa5756ebf4ec535e02e3bf3721e8676ebf93c6352e2d24e382c848` in block 2409.
+
+**Tests:** 14 Aqua strategy tests pass, including 256 price-rounding fuzz cases, sequential competing fills, time boundaries, no carryover, total capacity after topups, cancellation, altered programs, slippage, and rollback of incoming Aqua settlement when the outgoing transfer fails. All 45 Node tests (including local-only demo options and isolated run names) and seven paymaster tests also pass. Re-running the completed demo reused its recorded result without submitting new transactions; `evidence/aqua/local-1793961821116.json` preserves that resume check.
+
+**Scope:** this is an EOA-authorized, paymaster-sponsored local demo and script-based Aqua app. It does not claim PQ authorization, autonomous taker scheduling, public-devnet swaps, atomic rollback across separate frames, or production token compatibility. See `docs/aqua-recurring-buy.md` for reproduction and limitations.
 
 ### Recording implementation as it happens
 
@@ -500,11 +514,11 @@ Proposed stack: TypeScript for the SDK, React for the demo, Solidity with Foundr
 
 - [ ] Inspect and pin the EF workshop, client, and sidecar versions.
 - [x] Record RPC endpoints, chain ID, funding instructions, and transaction encoding.
-- [ ] Submit one real frame transaction and capture admission/inclusion evidence.
-- [ ] Execute one official Aqua/SwapVM position with real token movements.
-- [ ] Establish whether both can run in the same frame-capable environment.
+- [x] Submit one real frame transaction and capture admission/inclusion evidence.
+- [x] Execute one official Aqua/SwapVM position with real token movements.
+- [x] Establish whether both can run in the same frame-capable environment.
 
-**Partial progress on version pinning:** local source commits, dependency versions, and public file fingerprints are recorded. Runtime container image IDs/digests still require a successful Docker inspection. Aqua and SwapVM source revisions must also be recorded before their execution experiment.
+**Partial progress on version pinning:** local source commits, dependency versions, and public file fingerprints are recorded, including the Aqua/SwapVM sources used in the successful local experiment. Runtime container image IDs/digests still require a successful Docker inspection.
 
 #### Run the implemented checks
 
@@ -535,18 +549,9 @@ The smoke succeeds only after a matching type-`0x06` transaction, two successful
 
 Each run writes a timestamped, sanitized JSON report under `evidence/milestone-1/`. A source fingerprint mismatch means the environment changed: inspect it before updating the lock. Do not bypass the pin check just to obtain a green result.
 
-#### Complete the Aqua compatibility experiment
+#### Reproduce the Aqua compatibility experiment
 
-Acquire the official repositories into ignored local checkouts when network access is available:
-
-```sh
-git clone https://github.com/1inch/aqua.git vendor/aqua
-git clone https://github.com/1inch/swap-vm.git vendor/swap-vm
-```
-
-Then inspect their instructions, pin actual revisions and dependency/compiler versions, and choose an existing supported position fixture. Deploy the official contracts and test tokens on the frame-capable chain through the gateway, exercise actual settlement, and record token balance changes and transaction receipts. Only then determine the adapter/strategy changes needed for FramePay. A fake router or local mock is not evidence of official Aqua/SwapVM compatibility.
-
-No Aqua interface or deployment command has been invented while those sources are unavailable. This task remains open until source inspection and execution are possible.
+Run `npm run aqua:bootstrap`, `npm run aqua:test`, `npm run aqua:build`, then `npm run aqua:demo` against the running local frame devnet with its paymaster deployed. The successful run and full deployment details are documented in `docs/aqua-recurring-buy.md`; machine-readable evidence is in `evidence/aqua/`.
 
 ### Milestone 2 — Prove PQ account authorization
 
@@ -558,26 +563,26 @@ No Aqua interface or deployment command has been invented while those sources ar
 
 ### Milestone 3 — Sponsored transfers
 
-- [ ] Implement bounded application-funded sponsorship.
+- [x] Implement bounded application-funded sponsorship.
 - [ ] Transfer the supported token from a vault holding zero ETH.
 - [ ] Test replay, altered recipient, expired authorization, exhausted quota, and reverting execution.
 - [ ] Document account deployment/funding separately; prove sponsored deployment before claiming a gasless first-use flow.
 
 ### Milestone 4 — Aqua strategy and SDK
 
-- [ ] Implement the recurring position and mandatory capacity checks.
-- [ ] Demonstrate partial fills, period boundaries, expiry, and racing fills.
+- [x] Implement the recurring position and mandatory capacity checks.
+- [x] Demonstrate partial fills, period boundaries, expiry, and racing fills (sequential competing fills in tests).
 - [ ] Verify the rollback boundary of supported grouped application actions.
-- [ ] Expose operation preparation, signing, submission, and observable status through the SDK.
+- [x] Expose operation preparation, signing, submission, and observable status through the SDK.
 - [ ] Make the reference app use the SDK end to end.
 
 ### Milestone 5 — Submission-ready demo
 
-- [ ] Show zero-ETH sponsored transfer and actual Aqua settlement.
+- [x] Show zero-ETH sponsored transfer and actual Aqua settlement (EOA taker).
 - [ ] Show a tampered PQ authorization rejected.
-- [ ] Show a strategy-limit violation rejected.
+- [x] Show a strategy-limit violation rejected (contract tests and live read-only quotes).
 - [ ] Show who pays gas after an intentionally reverting action.
-- [ ] Include reproducible scripts, contract addresses, version information, and explorer evidence.
+- [x] Include reproducible scripts, contract addresses, version information, and explorer evidence.
 - [ ] Maintain real development commits throughout the build.
 
 ## Demo story

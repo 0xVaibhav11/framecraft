@@ -6,7 +6,7 @@ The project lets applications offer users a smart-account vault that can authori
 
 **Status:** The app defaults to FramePay devnet at `https://undertaken-decide-gathered-epic.trycloudflare.com/rpc` (chain 1337, with its own genesis). It supports PRF-derived ETHFalcon wallets, Aqua/SwapVM swaps, sponsored transfers and recurring positions. Deployment addresses are in `config/`. Generated run reports stay in ignored `.framepay/reports/`; the repository does not track evidence dumps. Token-fee reimbursement remains planned.
 
-Open **[the DeFi app](http://localhost:3000/app)** with `npm run web:dev`. Create a quantum wallet with a PRF-capable passkey (or a disposable test account), get test tokens, then use **Swap**, **Transfer**, **Positions**, and **Rules**. See [the app guide](docs/defi-app.md) for contract setup and the assertion model. The app uses devnet test assets and supports both passkey smart wallets and disposable browser test accounts. See [the quantum wallet guide](docs/quantum-wallet.md) for ETHFalcon setup and PRF key derivation, or [the legacy passkey wallet guide](docs/passkey-wallet.md) for existing P-256 accounts.
+Open **[the DeFi app](http://localhost:3000/app)** with `bun run poc:dev`. Create a quantum wallet with a PRF-capable passkey (or a disposable test account), get test tokens, then use **Swap**, **Transfer**, **Positions**, and **Rules**. See [the app guide](docs/defi-app.md) for contract setup and the assertion model. The app uses devnet test assets and supports both passkey smart wallets and disposable browser test accounts. See [the quantum wallet guide](docs/quantum-wallet.md) for ETHFalcon setup and PRF key derivation, or [the legacy passkey wallet guide](docs/passkey-wallet.md) for existing P-256 accounts.
 
 Run the contract tests with `npm run aqua:test` and the swap demo with `npm run aqua:demo` after [Aqua setup](docs/aqua-recurring-buy.md). The guide includes source pins, deployment details, strategy rules and verification commands.
 
@@ -33,12 +33,13 @@ Implementation and setup guides: [DeFi app](docs/defi-app.md), [recurring swaps]
 
 This uses the common `apps/` + `packages/` convention, with a top-level Foundry
 project for Solidity. Bun installs and links workspaces; Lerna runs their tasks
-in dependency order. The web app depends on the SDK through `workspace:*`.
+in dependency order. The POC app depends on the SDK through `workspace:*`.
 
 ```text
 framepay/
 ├── apps/
-│   └── web/                 # Next.js docs and playground (@framepay/docs)
+│   ├── poc/                 # Existing Next.js app (@framepay/poc)
+│   └── web/                 # Astro site with TypeScript (@framepay/web)
 ├── packages/
 │   └── sdk/                 # Shared TypeScript SDK (@framepay/sdk)
 ├── contracts/               # Foundry workspace (@framepay/contracts)
@@ -66,7 +67,7 @@ are introduced. Build output (`dist/`, `.next/`, `contracts/out/`) stays ignored
 ## Development setup
 
 Install Node.js 24 (`nvm install`), Bun 1.3.6, and Foundry v1.5.0. Node is still
-required by Next.js, Lerna, and the existing Node scripts. Foundry manages the
+required by Astro, Next.js, Lerna, and the existing Node scripts. Foundry manages the
 Solidity 0.8.33 compiler pinned in `contracts/foundry.toml`; its first build needs
 network access to download that compiler.
 
@@ -78,20 +79,26 @@ bun run build
 bun run dev
 ```
 
+The Astro site runs at `http://localhost:4321` with `bun run dev`. Use
+`bun run poc:dev` for the existing DeFi app at `http://localhost:3000/app`.
+
 `bun install` creates workspace links and activates Husky automatically. Commit
 `bun.lock`; use `bun install --frozen-lockfile` in CI and reproducible checkouts.
 Use Bun for dependency changes; do not create npm or Yarn lockfiles.
 
 | Command | Purpose |
 | --- | --- |
-| `bun run dev` | Build SDK, then start the web development server |
-| `bun run build` | Build all three workspaces and check examples |
-| `bun run web:build` | Build the SDK dependency and the web app |
+| `bun run dev` | Start the Astro development server |
+| `bun run build` | Build all four workspaces and check examples |
+| `bun run poc:dev` | Build SDK, then start the Next.js POC on port 3000 |
+| `bun run poc:build` | Build the SDK dependency and Next.js POC |
+| `bun run poc:typecheck` | Build SDK and check POC TypeScript |
+| `bun run web:build` | Type-check and build the Astro site |
 | `bun run sdk:build` | Build the SDK only |
 | `bun run contracts:build` | Compile Solidity with Foundry |
 | `bun run contracts:test` | Run Foundry contract tests |
 | `bun run contracts:fmt` | Format Solidity |
-| `bun run web:typecheck` | Build SDK and check web TypeScript |
+| `bun run web:typecheck` | Check Astro and TypeScript files |
 | `bun run test` | Run existing JavaScript tests (requires the pinned sibling workshop checkout) |
 | `bun run check:push` | Run the same full build gate as the push hook and CI |
 
@@ -102,7 +109,7 @@ not require a running devnet or that sibling repository.
 ## Git checks
 
 - **Pre-commit:** rejects whitespace errors in staged changes.
-- **Pre-push:** runs `bun run check:push`. A failed SDK build, web production
+- **Pre-push:** runs `bun run check:push`. A failed SDK build, Astro or POC production
   build, Solidity build, or example type check blocks the push. Every workspace
   runs each time; Lerna/Nx task-result caching is disabled. TypeScript and Foundry
   may still use their own incremental compiler state.

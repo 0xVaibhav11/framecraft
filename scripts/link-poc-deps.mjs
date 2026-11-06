@@ -7,7 +7,7 @@ const root = fileURLToPath(new URL("../", import.meta.url));
 const source = process.argv[2];
 if (!source)
   throw new Error(
-    "Usage: npm run web:bootstrap -- /path/to/existing/node_modules"
+    "Usage: npm run poc:bootstrap -- /path/to/existing/node_modules"
   );
 const expected = {
   next: "16.3.1",
@@ -35,11 +35,11 @@ for (const [name, version] of Object.entries(expected)) {
   );
   if (pkg.version !== version)
     throw new Error(`${name}: expected ${version}, found ${pkg.version}`);
-  await link(target, resolve(root, "apps/web/node_modules", name));
+  await link(target, resolve(root, "apps/poc/node_modules", name));
 }
 await link(
-  resolve(root, "apps/web/node_modules/next/dist/bin/next"),
-  resolve(root, "apps/web/node_modules/.bin/next")
+  resolve(root, "apps/poc/node_modules/next/dist/bin/next"),
+  resolve(root, "apps/poc/node_modules/.bin/next")
 );
 console.log(
   "Linked installed frontend dependencies without modifying the source checkout."

@@ -11,7 +11,7 @@ const src = resolve(upstream, 'falcon/nistfalcon/src');
 const fingerprints = [];
 for (const name of (await readdir(src)).filter(n => /\.(c|h)$/.test(n)).sort()) fingerprints.push([name, sha256(await readFile(resolve(src, name)))]);
 if (sha256(JSON.stringify(fingerprints)) !== pins.cSourceSha256) throw new Error('ETHFalcon C source changed.');
-const output = resolve(root, 'apps/web/public/ethfalcon');
+const output = resolve(root, 'apps/poc/public/ethfalcon');
 await mkdir(output, { recursive: true });
 const emsdk = resolve(root, 'vendor/emsdk/upstream/emscripten/emcc');
 const standalone = resolve(root, 'vendor/framepay-emscripten/install/emscripten/emcc');

@@ -17,7 +17,7 @@ try { playwright = require.resolve('playwright'); }
 catch { playwright = resolve(root, config.workshopPath, config.sidecarPath, 'node_modules/playwright/index.mjs'); }
 const { chromium } = await import(pathToFileURL(playwright).href);
 const server = createServer(async (req, res) => {
-  const files = { '/sdk.mjs': resolve(output, 'sdk.mjs'), '/ethfalcon/worker.mjs': resolve(root, 'apps/web/public/ethfalcon/worker.mjs'), '/ethfalcon/falcon.mjs': resolve(root, 'apps/web/public/ethfalcon/falcon.mjs') };
+  const files = { '/sdk.mjs': resolve(output, 'sdk.mjs'), '/ethfalcon/worker.mjs': resolve(root, 'apps/poc/public/ethfalcon/worker.mjs'), '/ethfalcon/falcon.mjs': resolve(root, 'apps/poc/public/ethfalcon/falcon.mjs') };
   try {
     if (files[req.url]) { res.setHeader('Content-Type', 'text/javascript'); res.end(await readFile(files[req.url])); }
     else if (req.url === '/') { res.setHeader('Content-Type', 'text/html'); res.end('<!doctype html><title>FramePay quantum test</title><p>Disposable virtual passkey test</p>'); }

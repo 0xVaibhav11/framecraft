@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { frameNetworks } from '@framepay/sdk';
-import { handleRpc } from '../apps/web/src/lib/rpc-handler.mjs';
-import { validateGateway } from '../apps/web/src/lib/rpc-policy.mjs';
+import { handleRpc } from '../apps/poc/src/lib/rpc-handler.mjs';
+import { validateGateway } from '../apps/poc/src/lib/rpc-policy.mjs';
 import { networkFor, createNetworkRpc, identifyNetwork, waitReceipt, assertDeploymentReceipt } from '../scripts/paymaster/runtime.mjs';
 
 const hash = `0x${'12'.repeat(32)}`;

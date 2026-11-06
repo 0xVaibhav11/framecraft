@@ -1,10 +1,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { handleRpc } from "../apps/web/src/lib/rpc-handler.mjs";
+import { handleRpc } from "../apps/poc/src/lib/rpc-handler.mjs";
 import {
   validateGateway,
   validateRpcRequest,
-} from "../apps/web/src/lib/rpc-policy.mjs";
+} from "../apps/poc/src/lib/rpc-policy.mjs";
 
 const payload = (method = "eth_chainId", params = []) => ({
   jsonrpc: "2.0",

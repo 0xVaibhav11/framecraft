@@ -59,7 +59,7 @@ export default function Quickstart() {
             then start the app. The configured devnet already has public
             deployment records for the wallet factory, paymaster and Aqua market.
           </p>
-          <CodeBlock title="Terminal" code={"npm run aqua:bootstrap\nnpm run quantum:build\nnpm run web:bootstrap\nnpm run web:dev"} />
+          <CodeBlock title="Terminal" code={"npm run aqua:bootstrap\nnpm run quantum:build\nnpm run poc:bootstrap\nnpm run poc:dev"} />
           <p>
             Open <Link href="/app">the app</Link>, create a quantum wallet,
             deploy it, claim test tokens and review a swap or transfer.

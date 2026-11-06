@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { custom, defineChain } from 'viem';
 import { buildTransferPlan, createFrameClient, getProfile, privateKeyToFrameSigner, sigHash, txHash } from '@framepay/sdk';
-import { validateRpcRequest } from '../apps/web/src/lib/rpc-policy.mjs';
+import { validateRpcRequest } from '../apps/poc/src/lib/rpc-policy.mjs';
 
 const profile = getProfile('ethrex-eip8141-tracer');
 const signer = privateKeyToFrameSigner(`0x${'0'.repeat(63)}1`);

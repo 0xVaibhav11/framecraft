@@ -27,7 +27,7 @@ npm run aqua:build
 npm test
 npm run aqua:test
 npm run quantum:browser-check
-npm run web:build
+npm run poc:build
 ```
 
 `aqua:test` uses Foundry FFI to run the real compiled signer with a public test seed. `quantum:browser-check` needs Bun, Playwright (or the sibling workshop installation), and Chrome; it uses a disposable virtual authenticator, checks PRF regeneration across reloads, and never exports its private credential.
@@ -36,7 +36,7 @@ With the configured FramePay devnet producing blocks:
 
 ```sh
 npm run quantum:deploy -- --network devnet
-npm run web:dev
+npm run poc:dev
 ```
 
 Deploy records are saved in `config/quantum.json`. The script checks chain health before funding/broadcast and resumes its deployment journal. Until deployed, the app explains that the verifier and factory must be deployed first. Open `http://localhost:3000/app`, create a quantum wallet, deploy it, claim test tokens, and review a swap or transfer.

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { amount, assertTransfer, assertSwap, defaultRules, loadRules } from '../apps/web/src/lib/defi-rules.mjs';
-import { validateRpcRequest } from '../apps/web/src/lib/rpc-policy.mjs';
+import { amount, assertTransfer, assertSwap, defaultRules, loadRules } from '../apps/poc/src/lib/defi-rules.mjs';
+import { validateRpcRequest } from '../apps/poc/src/lib/rpc-policy.mjs';
 const sender = '0x1111111111111111111111111111111111111111';
 const recipient = '0x2222222222222222222222222222222222222222';
 

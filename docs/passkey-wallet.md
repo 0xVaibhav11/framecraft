@@ -58,14 +58,14 @@ After the local DeFi app setup:
 ```sh
 npm run aqua:build
 npm run passkey:deploy
-npm run web:dev
+npm run poc:dev
 ```
 
 The deployer checks pinned OpenZeppelin 5.6.1 sources and build artifacts. It deploys `FramePayPasskeyFactory`, checks native P-256 support and writes `config/passkeys.json`. The browser verifies the factory code hash and genesis, predicts each CREATE2 wallet address from the credential, and checks its onchain public key and domain fields before use. Public devnet deployment is not configured.
 
 - Wallet/factory: `contracts/aqua/src/FramePayPasskeyWallet.sol`.
 - Reusable SDK registration, proof parsing, challenge and ABI helpers: `packages/sdk/src/passkey.ts`.
-- App account, review and submission integration: `apps/web/src/components/defi/use-defi.ts`.
+- App account, review and submission integration: `apps/poc/src/components/defi/use-defi.ts`.
 - Wallet tests: `contracts/aqua/test/PasskeyWallet.t.sol`; SDK tests: `tests/passkey.test.mjs`.
 
 ## Verification

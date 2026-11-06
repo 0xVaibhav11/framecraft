@@ -42,7 +42,7 @@ npm run paymaster:deploy -- --network devnet
 npm run defi:deploy -- --network devnet
 npm run quantum:build
 npm run quantum:deploy -- --network devnet
-npm run web:dev
+npm run poc:dev
 ```
 
 `defi:deploy` deploys the official Aqua contract, the customized SwapVM router, the transfer guard, and two claimable test tokens. It seeds the community position and writes `config/defi.json`. The private deployment journal is resumable; public deployment evidence is written under ignored `.framepay/reports/aqua/`. See [the Aqua guide](aqua-recurring-buy.md) for source pins and the canonical frame path needed by the large router deployment. Normal app transactions use the standard alternative mempool.
@@ -62,4 +62,4 @@ The optional disposable-account flow creates a SECP256K1 test account and keeps 
 - Browser execution: sponsored token claim, swap, guarded token transfer, position creation and cancellation; five successful type-`0x06` receipts with every frame successful.
 - Browser assertions: an oversized transfer was rejected before submission; rules and account survived a reload; the 390-pixel layout had no horizontal overflow or runtime errors.
 - Final test-account balances: **1,005 fpUSD, 99 fpASSET, 0 ETH**, after receiving 10 fpUSD for 1 fpASSET and transferring 5 fpUSD.
-- `npm test` verifies SDK behavior, rule validation, RPC policy and proxy handling. `npm run aqua:test` verifies recurring-position limits and transfer-guard assertions, including rollback after a failed recipient-balance check. `npm run web:build` builds the app.
+- `npm test` verifies SDK behavior, rule validation, RPC policy and proxy handling. `npm run aqua:test` verifies recurring-position limits and transfer-guard assertions, including rollback after a failed recipient-balance check. `npm run poc:build` builds the app.

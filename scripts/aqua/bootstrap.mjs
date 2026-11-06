@@ -14,5 +14,6 @@ const revision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: resolve(root,
 if (revision !== swap.commit) throw new Error('Existing SwapVM checkout differs from the pinned commit; preserve it and review before continuing.');
 execFileSync('npm', ['install', '--prefix', 'vendor/framepay-deps', '--save-exact', '--legacy-peer-deps', '--ignore-scripts', '--no-audit', '--no-fund',
   ...pins.sources.filter(item => item.version).map(item => `${item.name}@${item.version}`), `solc@${pins.compiler}`], { cwd: root, stdio: 'inherit' });
+execFileSync(process.execPath, ['scripts/quantum/bootstrap.mjs'], { cwd: root, stdio: 'inherit' });
 await checkSources();
 console.log('Official Solidity sources and compiler are ready.');

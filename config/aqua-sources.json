@@ -25,6 +25,21 @@
       "version": "5.6.1",
       "path": "vendor/framepay-deps/node_modules/@openzeppelin/contracts",
       "solidityTreeSha256": "571d8c06afa71a4df40e0c9a4861b16a688500b1509db9a87433a5fe4f59a44e"
+    },
+    {
+      "name": "ETHFALCON",
+      "path": "vendor/ethfalcon/src",
+      "solidityTreeSha256": "654c0ff50b685747703feafe501401226c39499dfdf17f0b7168acf4eac094d3"
+    },
+    {
+      "name": "ETHFALCON/InterfaceVerifier",
+      "path": "vendor/ethfalcon/lib/InterfaceVerifier/src",
+      "solidityTreeSha256": "70782644f3981c1ab21d7d07245a7ea553ac2fac89dbbb81783d9c0773e2acc7"
+    },
+    {
+      "name": "ETHFALCON/SSTORE2",
+      "path": "vendor/ethfalcon/lib/sstore2/contracts",
+      "solidityTreeSha256": "e70f63bc34562ba0f54377f5938ff42306bf5f686049caa90fc3d8e550ea4bb5"
     }
   ]
 }

@@ -51,7 +51,17 @@
     "poc:bootstrap": "node scripts/link-poc-deps.mjs",
     "poc:dev": "bun run sdk:build && bun run --cwd apps/poc dev",
     "poc:build": "lerna run build --scope @framepay/poc --include-dependencies",
-    "poc:typecheck": "bun run sdk:build && bun run --cwd apps/poc typecheck"
+    "poc:typecheck": "bun run sdk:build && bun run --cwd apps/poc typecheck",
+    "privacy:build": "bun run sdk:build && bun run --cwd packages/privacy build",
+    "private:setup": "bun run privacy:build && node scripts/private/cli.ts setup",
+    "private:build": "bun run privacy:build && node scripts/private/cli.ts build",
+    "private:deploy": "bun run privacy:build && node scripts/private/cli.ts deploy",
+    "private:demo": "bun run privacy:build && node scripts/private/cli.ts demo",
+    "private:report": "bun run privacy:build && node scripts/private/cli.ts report",
+    "private:typecheck": "bun run privacy:build && tsc -p scripts/private/tsconfig.json",
+    "private:test": "bun run private:typecheck && node --test tests/private/*.test.ts",
+    "private:contracts:test": "bun run privacy:build && node scripts/private/cli.ts test-contracts",
+    "private:test:proofs": "bun run privacy:build && node scripts/private/cli.ts test-proofs"
   },
   "devDependencies": {
     "@forshtat/hegota-support": "0.0.1",

@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "target": "ES2022", "module": "NodeNext", "moduleResolution": "NodeNext",
+    "lib": ["ES2022", "DOM"], "strict": true, "skipLibCheck": true,
+    "noEmit": true, "allowImportingTsExtensions": true,
+    "types": ["node"], "typeRoots": ["../../packages/privacy/node_modules/@types", "../../node_modules/@types"]
+  },
+  "include": ["./**/*.ts", "../../tests/private/**/*.ts", "../../packages/privacy/scripts/**/*.ts"]
+}

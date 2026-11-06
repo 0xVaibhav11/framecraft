@@ -43,3 +43,5 @@ export function privateKeyToFrameSigner(privateKey: Hex): FrameSigner {
 
 export { registerPasskey, signWithPasskey, parsePasskeyProof, decodeP256Signature, passkeyChallenge, passkeyFactoryArgs, passkeyWalletAbi, passkeyFactoryAbi } from './passkey.js';
 export type { PasskeyCredential, PasskeyProof, WalletCall } from './passkey.js';
+export { FALCON_PRF_SALT, quantumWalletAbi, quantumFactoryAbi, quantumFactoryArgs, quantumChallenge, falconKeyHash, validateFalconKey, registerQuantumPasskey, signWithQuantumPasskey, runFalcon } from './quantum.js';
+export type { QuantumCredential, QuantumProof } from './quantum.js';

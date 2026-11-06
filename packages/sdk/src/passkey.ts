@@ -60,14 +60,16 @@ function requireBrowser() {
   if (/^[\d.]+$/.test(location.hostname) || location.hostname.includes(':')) throw new Error('Open http://localhost:3000/app to create a passkey; IP-address origins are not supported.');
 }
 /** Creates a resident ES256 credential. The authenticator retains the private key. */
-export async function registerPasskey(): Promise<PasskeyCredential> {
+export async function registerPasskey(prf = false): Promise<PasskeyCredential> {
   requireBrowser();
   const credential = await navigator.credentials.create({ publicKey: {
     rp: { name: 'FramePay', id: location.hostname }, user: { id: crypto.getRandomValues(new Uint8Array(32)), name: `wallet-${Date.now()}`, displayName: 'FramePay wallet' },
     challenge: crypto.getRandomValues(new Uint8Array(32)), pubKeyCredParams: [{ type: 'public-key', alg: -7 }],
     authenticatorSelection: { residentKey: 'required', userVerification: 'required' }, attestation: 'none', timeout: 60_000,
+    ...(prf ? { extensions: { prf: {} } as AuthenticationExtensionsClientInputs } : {}),
   } }) as PublicKeyCredential | null;
   if (!credential) throw new Error('Passkey creation was cancelled.');
+  if (prf && !(credential.getClientExtensionResults() as { prf?: { enabled?: boolean } }).prf?.enabled) throw new Error('This passkey does not support PRF. Choose a PRF-capable authenticator; no weaker wallet was created.');
   const response = credential.response as AuthenticatorAttestationResponse;
   if (response.getPublicKeyAlgorithm?.() !== -7) throw new Error('The authenticator must support ES256 passkeys.');
   const spki = response.getPublicKey?.();

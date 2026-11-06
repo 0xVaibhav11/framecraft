@@ -1,4 +1,5 @@
 import { validateGateway, validateRpcRequest } from "./rpc-policy.mjs";
+import { frameNetworks } from "@framepay/sdk";
 
 function failure(id, code, message, status) {
   return Response.json(
@@ -8,8 +9,16 @@ function failure(id, code, message, status) {
 }
 export async function handleRpc(
   request,
-  { gateway = "http://127.0.0.1:14337/rpc", fetchImpl = fetch } = {}
+  {
+    gateway: localGateway = String(frameNetworks.local.rpcUrl),
+    fetchImpl = fetch,
+  } = {}
 ) {
+  const networkId = new URL(request.url).searchParams.get("network") ?? "local";
+  if (!Object.hasOwn(frameNetworks, networkId))
+    return failure(null, -32600, "Unknown frame network.", 400);
+  const network = frameNetworks[networkId];
+  const gateway = networkId === "local" ? localGateway : network.rpcUrl;
   const origin = request.headers.get("origin");
   if (origin && origin !== new URL(request.url).origin)
     return failure(
@@ -55,7 +64,7 @@ export async function handleRpc(
       "This request is not supported by the local playground.",
       400
     );
-  if (!validateGateway(gateway))
+  if (!validateGateway(gateway, networkId))
     return failure(
       body.id,
       -32603,
@@ -75,7 +84,7 @@ export async function handleRpc(
       return failure(
         body.id,
         -32000,
-        `Local gateway returned HTTP ${response.status}.`,
+        `${network.name} gateway returned HTTP ${response.status}.`,
         502
       );
     const result = await response.json();
@@ -83,7 +92,7 @@ export async function handleRpc(
       return failure(
         body.id,
         -32603,
-        "Invalid response from the local gateway.",
+        "Invalid response from the selected gateway.",
         502
       );
     if (result.error) {
@@ -101,7 +110,7 @@ export async function handleRpc(
       return failure(
         body.id,
         -32603,
-        "Missing result from the local gateway.",
+        "Missing result from the selected gateway.",
         502
       );
     return Response.json(
@@ -114,7 +123,9 @@ export async function handleRpc(
     return failure(
       body.id,
       -32000,
-      "Local gateway unavailable. Start the devnet and check port 14337.",
+      networkId === "local"
+        ? "Local gateway unavailable. Start the devnet and check port 14337."
+        : "Public devnet gateway unavailable. Check connectivity and try again.",
       503
     );
   }

@@ -146,8 +146,8 @@ export default function Overview() {
             <strong>A focused developer preview</strong>
             <p>
               The current SDK targets the local ethrex workshop profile.
-              Paymaster adapters, PQ accounts, and pre-submission simulation are
-              on the roadmap.
+              Provider sponsorship quotes, PQ accounts, and pre-submission
+              simulation are on the roadmap.
             </p>
           </div>
         </div>

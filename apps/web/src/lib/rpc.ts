@@ -1,5 +1,9 @@
 import { defineChain, http } from "viem";
-import { createFrameClient } from "@framepay/sdk";
+import {
+  createFrameClient,
+  frameNetworks,
+  type FrameNetworkId,
+} from "@framepay/sdk";
 
 export const chain = defineChain({
   id: 1337,
@@ -7,18 +11,27 @@ export const chain = defineChain({
   nativeCurrency: { name: "Test Ether", symbol: "ETH", decimals: 18 },
   rpcUrls: { default: { http: ["http://localhost:14337/rpc"] } },
 });
-export function frameClient() {
+export function frameClient(networkId: FrameNetworkId = "local") {
+  const network = frameNetworks[networkId];
   return createFrameClient({
-    chain,
-    transport: http("/api/rpc", { retryCount: 0, timeout: 12_000 }),
+    chain: {
+      ...chain,
+      name: network.name,
+      rpcUrls: { default: { http: [network.rpcUrl] } },
+    },
+    transport: http(`/api/rpc?network=${networkId}`, {
+      retryCount: 0,
+      timeout: 12_000,
+    }),
     profile: "ethrex-eip8141-tracer",
   });
 }
 export async function rpc<T>(
   method: string,
-  params: unknown[] = []
+  params: unknown[] = [],
+  networkId: FrameNetworkId = "local"
 ): Promise<T> {
-  const response = await fetch("/api/rpc", {
+  const response = await fetch(`/api/rpc?network=${networkId}`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),

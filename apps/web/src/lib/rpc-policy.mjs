@@ -6,6 +6,8 @@ const latest = (value) => value === "latest" || value === "pending";
 const checks = {
   eth_chainId: (p) => p.length === 0,
   eth_blockNumber: (p) => p.length === 0,
+  eth_getBlockByNumber: (p) =>
+    p.length === 2 && p[0] === "0x0" && p[1] === false,
   skandha_explorer_info: (p) => p.length === 0,
   eth_getBalance: (p) => p.length === 2 && address(p[0]) && latest(p[1]),
   eth_getCode: (p) => p.length === 2 && address(p[0]) && latest(p[1]),
@@ -39,9 +41,12 @@ export function validateRpcRequest(body) {
     return false;
   return Object.hasOwn(checks, body.method) && checks[body.method](body.params);
 }
-export function validateGateway(value) {
+export function validateGateway(value, network = "local") {
   try {
     const url = new URL(value);
+    if (network === "public")
+      return url.href === "https://altmempoolgateway.forshtat.com/rpc";
+    if (network !== "local") return false;
     return (
       url.protocol === "http:" &&
       ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname) &&

@@ -1,11 +1,11 @@
 "use client";
 import Link from "next/link";
-import { useRef, useState } from "react";
-import { formatEther, isAddress, parseEther, type Hex } from "viem";
+import { useEffect, useRef, useState } from "react";
+import { formatEther, isAddress, keccak256, parseEther, type Hex } from "viem";
 import { generatePrivateKey } from "viem/accounts";
 import {
-  frame,
   getProfile,
+  frameNetworks,
   privateKeyToFrameSigner,
   txHash,
   FramePayError,
@@ -17,6 +17,7 @@ import {
 import { frameClient, rpc, jsonText, shortAddress } from "@/lib/rpc";
 import { useNetwork } from "./network";
 import { Icon } from "./icon";
+import paymasterRegistry from "../../../../config/paymasters.json";
 
 type Stage =
   | "idle"
@@ -62,6 +63,9 @@ function copy(value: string) {
 
 export function Playground() {
   const network = useNetwork();
+  const environment = frameNetworks[network.id];
+  const networkRpc = <T,>(method: string, params: unknown[] = []) =>
+    rpc<T>(method, params, network.id);
   const signer = useRef<FrameSigner | null>(null);
   const abort = useRef<AbortController | null>(null);
   const [mode, setMode] = useState<"compose" | "inspect">("compose");
@@ -73,6 +77,14 @@ export function Playground() {
     "0x8943545177806ED17B9F23F0a21ee5948eCaa776"
   );
   const [amount, setAmount] = useState("0.000000001");
+  const [paymentType, setPaymentType] = useState<"self" | "paymaster">("self");
+  const [paymaster, setPaymaster] = useState("");
+  const [loadingPaymaster, setLoadingPaymaster] = useState(false);
+  const [verificationData, setVerificationData] = useState("0x");
+  const [allowedRecipients, setAllowedRecipients] = useState(
+    "0x8943545177806ED17B9F23F0a21ee5948eCaa776"
+  );
+  const [maxAmount, setMaxAmount] = useState("0.001");
   const [stage, setStage] = useState<Stage>("idle");
   const [transaction, setTransaction] = useState<FrameTx | null>(null);
   const [signed, setSigned] = useState<FrameTx | null>(null);
@@ -84,7 +96,11 @@ export function Playground() {
   const [tab, setTab] = useState<"payload" | "receipt" | "admission">(
     "payload"
   );
-  const [lookupHash, setLookupHash] = useState("");
+  const [lookupHash, setLookupHash] = useState(
+    network.id === "public"
+      ? "0x28f5671f4fd42689c70bd8e0850f5b237f7d31416f3eb6a7b39d43a74af558a4"
+      : ""
+  );
   const [lookup, setLookup] = useState<{
     hash: Hex;
     receipt: FrameReceipt | null;
@@ -95,8 +111,13 @@ export function Playground() {
   const [copied, setCopied] = useState(false);
   const busy =
     ["preparing", "signing", "submitting", "pending"].includes(stage) ||
-    funding;
+    funding ||
+    loadingPaymaster;
   const locked = stage !== "idle";
+  useEffect(() => {
+    network.setLocked(busy || locked || lookupBusy);
+    return () => network.setLocked(false);
+  }, [busy, locked, lookupBusy, network.setLocked]);
   const connected = network.status === "online";
   const displayReceipt = mode === "inspect" ? lookup?.receipt ?? null : receipt;
   const displayAdmission =
@@ -123,9 +144,48 @@ export function Playground() {
   async function refreshBalance(account = address) {
     if (!account) return;
     try {
-      setBalance(BigInt(await rpc<Hex>("eth_getBalance", [account, "latest"])));
+      setBalance(
+        BigInt(await networkRpc<Hex>("eth_getBalance", [account, "latest"]))
+      );
     } catch {
       setBalance(null);
+    }
+  }
+  async function useRecordedPaymaster() {
+    const record = paymasterRegistry[network.id] as null | {
+      address: Hex;
+      genesisHash: Hex;
+      codeHash: Hex;
+    };
+    if (!record) return;
+    setLoadingPaymaster(true);
+    setError("");
+    try {
+      const genesis = await networkRpc<{ hash: Hex }>("eth_getBlockByNumber", [
+        "0x0",
+        false,
+      ]);
+      const code = await networkRpc<Hex>("eth_getCode", [
+        record.address,
+        "latest",
+      ]);
+      if (
+        genesis.hash !== record.genesisHash ||
+        code === "0x" ||
+        keccak256(code) !== record.codeHash
+      )
+        throw new Error(
+          "The saved paymaster does not match this devnet. Redeploy after a network reset."
+        );
+      setPaymaster(record.address);
+      setVerificationData("0x");
+      log(
+        "Recorded FramePay paymaster code and genesis matched. Payment approval is still required."
+      );
+    } catch (err) {
+      setError(errorText(err));
+    } finally {
+      setLoadingPaymaster(false);
     }
   }
   function createAccount() {
@@ -145,16 +205,17 @@ export function Playground() {
     setFunding(true);
     setError("");
     try {
-      const funded = await rpc<{ txHash: Hex }>("skandha_explorer_faucet", [
-        address,
-      ]);
+      const funded = await networkRpc<{ txHash: Hex }>(
+        "skandha_explorer_faucet",
+        [address]
+      );
       if (!/^0x[\da-fA-F]{64}$/.test(funded.txHash))
         throw new Error("The faucet returned an invalid transaction hash.");
       setFaucetHash(funded.txHash);
       log("Faucet transfer requested. Waiting for its receipt.");
       const end = Date.now() + 120_000;
       while (Date.now() < end) {
-        const result = await rpc<{ status: string } | null>(
+        const result = await networkRpc<{ status: string } | null>(
           "eth_getTransactionReceipt",
           [funded.txHash]
         );
@@ -192,7 +253,7 @@ export function Playground() {
   }
   async function primaryAction() {
     if (!signer.current) return;
-    const client = frameClient();
+    const client = frameClient(network.id);
     setError("");
     try {
       if (stage === "idle") {
@@ -204,26 +265,43 @@ export function Playground() {
         } catch {
           throw new Error("Enter a valid ETH amount.");
         }
-        if (value <= 0n || value > parseEther("0.001"))
+        let maximum;
+        try {
+          maximum = parseEther(maxAmount);
+        } catch {
+          throw new Error("Enter a valid maximum transfer amount.");
+        }
+        if (value < 0n || maximum < 0n || maximum > parseEther("0.001"))
           throw new Error(
-            "Use an amount greater than zero and at most 0.001 test ETH."
+            "Use nonnegative amounts and a draft limit of at most 0.001 test ETH."
+          );
+        const recipients = allowedRecipients.split(/[\s,]+/).filter(Boolean);
+        if (!recipients.length || !recipients.every((item) => isAddress(item)))
+          throw new Error(
+            "Enter at least one valid allowed recipient address, separated by commas."
+          );
+        if (paymentType === "paymaster" && !isAddress(paymaster))
+          throw new Error(
+            "Enter the address of a deployed frame-compatible paymaster."
           );
         setStage("preparing");
-        const prepared = await client.prepareFrameTransaction({
+        const prepared = await client.prepareTransfer({
           sender: signer.current.address,
+          transfer: { to: recipient, value },
+          payment:
+            paymentType === "self"
+              ? { type: "self" }
+              : {
+                  type: "paymaster",
+                  address: paymaster as Hex,
+                  verificationData: verificationData as Hex,
+                },
+          rules: {
+            allowedRecipients: recipients as Hex[],
+            maxValue: maximum,
+            maxFeePerGas: 2_000_000_000n,
+          },
           maxFeePerGas: 2_000_000_000n,
-          frames: [
-            frame(profile, "VERIFY", {
-              scope: "EXECUTION_AND_PAYMENT",
-              execution: 30_000n,
-            }),
-            frame(profile, "SENDER", {
-              target: recipient,
-              value,
-              execution: 50_000n,
-              state: 200_000n,
-            }),
-          ],
         });
         setTransaction(prepared);
         setStage("prepared");
@@ -263,13 +341,15 @@ export function Playground() {
         abort.current = new AbortController();
         const result = await client.waitForFrameReceipt({
           hash: submitted,
-          expectedFrameCount: 2,
+          expectedFrameCount: signed.frames.length,
           signal: abort.current.signal,
         });
         setReceipt(result);
         setStage("confirmed");
         log(
-          `Both frames succeeded in block ${BigInt(result.blockNumber)}.`,
+          `${result.frameReceipts.length} frames succeeded in block ${BigInt(
+            result.blockNumber
+          )}.`,
           "success"
         );
         await readAdmission(client, submitted);
@@ -303,13 +383,14 @@ export function Playground() {
     setError("");
     setLookupBusy(true);
     try {
-      const client = frameClient();
+      const client = frameClient(network.id);
       const result = await client.getFrameReceipt({ hash });
       setReceipt(result);
       setTab("receipt");
       if (result) {
         const ok =
           result.status === "0x1" &&
+          result.frameReceipts.length === transaction?.frames.length &&
           result.frameReceipts.every((item) => item.status === "0x1");
         setStage(ok ? "confirmed" : "failed");
         log(
@@ -339,7 +420,7 @@ export function Playground() {
     setLookupMessage("");
     setLookup(null);
     try {
-      const client = frameClient();
+      const client = frameClient(network.id);
       const result = await client.getFrameReceipt({ hash: target });
       let admitted = null;
       try {
@@ -373,6 +454,8 @@ export function Playground() {
   }
   function download() {
     const result = {
+      network: network.id,
+      gateway: environment.rpcUrl,
       chainId: 1337,
       profile: profile.id,
       observedAt: new Date().toISOString(),
@@ -421,7 +504,7 @@ export function Playground() {
           <h1>Your first frame, live.</h1>
           <p>
             Explore the SDK one action at a time. Every result comes from your
-            local devnet.
+            selected devnet.
           </p>
         </div>
         <Link className="button secondary" href="/docs/quickstart">
@@ -468,7 +551,7 @@ export function Playground() {
           <span>
             {network.status === "wrong-chain"
               ? "The gateway is on a different chain. This playground requires chain 1337."
-              : "Connect your local devnet at localhost:14337 to run a transaction. You can still browse the SDK docs and create a test account."}
+              : `${environment.name} is unavailable at ${environment.rpcUrl}. You can still browse the docs and create a test account.`}
           </span>
           <button onClick={() => void network.refresh()}>
             Check connection <Icon name="refresh" size={13} />
@@ -577,7 +660,8 @@ export function Playground() {
                 </div>
                 <p className="field-hint">
                   The key stays in this page’s memory. Leaving or reloading
-                  clears it. Use test funds only.
+                  clears it. Switching networks also discards this account. Use
+                  test funds only.
                 </p>
                 {faucetHash && (
                   <p className="field-hint mono break-word">
@@ -589,7 +673,9 @@ export function Playground() {
                 <div className="form-section-title">
                   <span className="inline-number">02</span>
                   <h2>Transfer details</h2>
-                  <span className="subtle-badge">SELF-PAID</span>
+                  <span className="subtle-badge">
+                    {paymentType === "self" ? "SELF-PAID" : "SPONSOR REQUEST"}
+                  </span>
                 </div>
                 <label htmlFor="recipient">Recipient address</label>
                 <input
@@ -613,6 +699,118 @@ export function Playground() {
                   />
                   <span>ETH</span>
                 </div>
+                <p className="field-hint">
+                  A sponsor covers gas, not the ETH being transferred. Use
+                  amount 0 to test sponsorship with an unfunded sender.
+                </p>
+              </div>
+              <div className="form-section">
+                <div className="form-section-title">
+                  <span className="inline-number">03</span>
+                  <h2>Who pays for gas?</h2>
+                </div>
+                <label htmlFor="payment-type">Payment option</label>
+                <select
+                  id="payment-type"
+                  className="text-input"
+                  disabled={locked}
+                  value={paymentType}
+                  onChange={(e) =>
+                    setPaymentType(e.target.value as "self" | "paymaster")
+                  }
+                >
+                  <option value="self">I pay with my test ETH</option>
+                  <option value="paymaster">Request a paymaster to pay</option>
+                </select>
+                {paymentType === "paymaster" && (
+                  <>
+                    {paymasterRegistry[network.id] ? (
+                      <button
+                        className="button secondary full-width"
+                        disabled={locked || busy || !connected}
+                        onClick={() => void useRecordedPaymaster()}
+                      >
+                        Use deployed FramePay paymaster
+                      </button>
+                    ) : (
+                      <p className="field-hint">
+                        No confirmed FramePay deployment is recorded for{" "}
+                        {environment.name}. You can enter another compatible
+                        paymaster below.
+                      </p>
+                    )}
+                    <label htmlFor="paymaster">
+                      Paymaster contract address
+                    </label>
+                    <input
+                      id="paymaster"
+                      className="text-input mono"
+                      value={paymaster}
+                      onChange={(e) => setPaymaster(e.target.value)}
+                      disabled={locked}
+                      placeholder="0x…"
+                      spellCheck={false}
+                      autoComplete="off"
+                    />
+                    <p className="field-hint">
+                      Use a deployed, funded paymaster compatible with this
+                      devnet. Selecting it requests sponsorship; the contract
+                      must approve payment. Token fees and discounts are not
+                      supported by this module.
+                    </p>
+                    <details className="composer-details">
+                      <summary>Paymaster authorization data</summary>
+                      <label htmlFor="verification-data">
+                        Verification calldata (hex)
+                      </label>
+                      <input
+                        id="verification-data"
+                        className="text-input mono"
+                        value={verificationData}
+                        onChange={(e) => setVerificationData(e.target.value)}
+                        disabled={locked}
+                        spellCheck={false}
+                      />
+                      <p className="field-hint">
+                        The workshop SponsorPaymaster uses 0x. Other contracts
+                        may require provider-specific authorization; FramePay
+                        does not issue it. This UI budgets 50,000 execution gas
+                        for the paymaster.
+                      </p>
+                    </details>
+                  </>
+                )}
+              </div>
+              <div className="form-section">
+                <div className="form-section-title">
+                  <span className="inline-number">04</span>
+                  <h2>Draft limits</h2>
+                </div>
+                <label htmlFor="allowed-recipients">Allowed recipients</label>
+                <textarea
+                  id="allowed-recipients"
+                  className="text-input mono"
+                  rows={2}
+                  value={allowedRecipients}
+                  onChange={(e) => setAllowedRecipients(e.target.value)}
+                  disabled={locked}
+                  spellCheck={false}
+                  aria-describedby="draft-limits-hint"
+                />
+                <label htmlFor="max-amount">Maximum transfer (ETH)</label>
+                <input
+                  id="max-amount"
+                  className="text-input"
+                  value={maxAmount}
+                  onChange={(e) => setMaxAmount(e.target.value)}
+                  disabled={locked}
+                  inputMode="decimal"
+                />
+                <p className="field-hint" id="draft-limits-hint">
+                  Separate addresses with commas. These limits check this draft
+                  locally; they do not create ongoing account permissions or
+                  daily quotas.
+                </p>
                 <div className="fee-row">
                   <span>
                     Max gas price <Icon name="info" size={12} />
@@ -624,11 +822,47 @@ export function Playground() {
                   <code>1337</code>
                 </div>
                 <p className="field-hint">
-                  Maximum transfer: 0.001 test ETH. Explicit workshop gas
-                  limits; no automatic gas estimation.
+                  Local transfer cap: 0.001 test ETH. EOA recipients only. Gas
+                  budgets use workshop defaults; no automatic estimation.
                 </p>
               </div>
               <div className="composer-action">
+                {transaction && (
+                  <div
+                    className="transfer-review"
+                    aria-label="Review transaction before signing"
+                  >
+                    <h3>Review before signing</h3>
+                    <dl>
+                      <dt>Network</dt>
+                      <dd>
+                        {environment.name} · {environment.rpcUrl}
+                      </dd>
+                      <dt>Recipient</dt>
+                      <dd>{transaction.frames.at(-1)?.target}</dd>
+                      <dt>Transfer</dt>
+                      <dd>
+                        {formatEther(transaction.frames.at(-1)!.value)} ETH
+                      </dd>
+                      <dt>Requested gas payer</dt>
+                      <dd>
+                        {transaction.frames.length === 3
+                          ? transaction.frames[1].target
+                          : transaction.sender}
+                      </dd>
+                      <dt>Maximum gas price</dt>
+                      <dd>2 gwei · not a total fee quote</dd>
+                      <dt>Generated steps</dt>
+                      <dd>{transaction.frames.length} frames on chain 1337</dd>
+                    </dl>
+                    {transaction.frames.length === 3 && (
+                      <p>
+                        Paymaster code was found. Eligibility and payment
+                        approval are still subject to the contract’s validation.
+                      </p>
+                    )}
+                  </div>
+                )}
                 {error && (
                   <div className="inline-error" role="alert">
                     <Icon name="info" size={16} />
@@ -649,9 +883,7 @@ export function Playground() {
                     disabled={
                       !address ||
                       busy ||
-                      ((stage === "idle" || stage === "signed") &&
-                        !connected) ||
-                      (stage === "idle" && (balance === null || balance === 0n))
+                      ((stage === "idle" || stage === "signed") && !connected)
                     }
                     onClick={() => void primaryAction()}
                   >
@@ -703,10 +935,10 @@ export function Playground() {
                 <p className="action-note">
                   {!address
                     ? "Start by creating a test account."
-                    : balance === 0n
-                    ? "Fund the account before preparing a transaction."
+                    : balance === 0n && paymentType === "self"
+                    ? "Self-payment requires test ETH for gas."
                     : stage === "signed"
-                    ? "The next action sends a real transaction to your local chain."
+                    ? `The next action sends a real transaction to ${environment.name}.`
                     : stage === "uncertain"
                     ? "The transaction may already be accepted. Inspect its hash before sending again."
                     : "Prepare and sign first. Submit only when you’re ready."}
@@ -783,7 +1015,14 @@ export function Playground() {
             <div className="frame-preview">
               {mode === "compose" || displayReceipt ? (
                 (mode === "compose"
-                  ? [0, 1]
+                  ? Array.from(
+                      {
+                        length:
+                          transaction?.frames.length ??
+                          (paymentType === "self" ? 2 : 3),
+                      },
+                      (_, index) => index
+                    )
                   : displayReceipt!.frameReceipts.map((_, index) => index)
                 ).map((index) => (
                   <div
@@ -814,7 +1053,10 @@ export function Playground() {
                       <strong>
                         {mode === "inspect"
                           ? `FRAME ${index + 1}`
-                          : index === 0
+                          : index <
+                            (transaction?.frames.length ??
+                              (paymentType === "self" ? 2 : 3)) -
+                              1
                           ? "VERIFY"
                           : "SENDER"}
                       </strong>
@@ -822,7 +1064,11 @@ export function Playground() {
                         {mode === "inspect"
                           ? "Recorded execution result"
                           : index === 0
-                          ? "Authorize execution & payment"
+                          ? paymentType === "self"
+                            ? "Authorize execution & payment"
+                            : "Authorize execution"
+                          : paymentType === "paymaster" && index === 1
+                          ? "Request paymaster approval"
                           : "Execute the transfer"}
                       </p>
                     </div>
@@ -847,7 +1093,13 @@ export function Playground() {
             {displayHash && (
               <div className="transaction-hash">
                 <span>TX HASH</span>
-                <code>{displayHash}</code>
+                <a
+                  href={`${environment.explorerUrl}/tx/${displayHash}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <code>{displayHash}</code>
+                </a>
                 <button
                   className="icon-button"
                   aria-label="Copy transaction hash"
@@ -976,8 +1228,9 @@ export function Playground() {
       <div className="playground-bottom">
         <span>
           <Icon name="info" size={15} />
-          This example uses a self-paid EOA. Paymaster and PQ adapters are not
-          enabled.
+          This module supports EOA ETH transfers with self-payment or a selected
+          paymaster. PQ accounts, token reimbursement, and persistent rules are
+          future integrations.
         </span>
         <Link href="/docs/admission">
           Understand admission <Icon name="arrow" size={14} />

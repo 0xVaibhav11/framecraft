@@ -1,17 +1,37 @@
+# Installed dependencies and downloaded upstream/toolchain sources
 node_modules/
+vendor/
+
+# Generated application and contract builds
 **/dist/
 **/.next/
 **/tsconfig.tsbuildinfo
-vendor/
-.framepay/
-.env
-.env.*
-!.env.example
-.workshop-state.json
-*.log
-.DS_Store
 contracts/out/
 contracts/cache/
 contracts/aqua/out/
 contracts/aqua/cache/
 contracts/aqua/artifacts/
+apps/web/public/ethfalcon/
+
+# Local credentials, deployment journals, and exported test accounts
+.framepay/
+.env
+.env.*
+!.env.example
+.workshop-state.json
+framepay-test-account-*.json
+
+# Generated verification reports, screenshots, coverage, and logs
+/evidence/
+coverage/
+playwright-report/
+test-results/
+*.log
+
+# Personal tooling and internal working notes
+/.codex/
+/.agents/
+/.idea/
+/AGENT_HANDOFF.md
+/plan.md
+.DS_Store

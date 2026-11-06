@@ -1,7 +1,0 @@
-{
-  "network": "local",
-  "gateway": "http://127.0.0.1:14337/rpc",
-  "observedAt": "2026-11-06T09:06:47.917Z",
-  "status": "not-submitted",
-  "error": "Local devnet gateway is unreachable; no automatic retry was made."
-}

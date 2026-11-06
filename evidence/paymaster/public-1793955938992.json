@@ -1,7 +1,0 @@
-{
-  "network": "public",
-  "gateway": "https://altmempoolgateway.forshtat.com/rpc",
-  "observedAt": "2026-11-06T09:05:38.898Z",
-  "status": "not-submitted",
-  "error": "Public alt-mempool devnet gateway is unreachable; no automatic retry was made."
-}

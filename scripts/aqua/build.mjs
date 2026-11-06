@@ -9,7 +9,7 @@ const directory = resolve(root, 'contracts/aqua/artifacts');
 await mkdir(directory, { recursive: true });
 const manifest = { compiler: pins.compiler, evmVersion: 'prague', viaIR: true, optimizerRuns: 600,
   sourceTreeSha256: await sourceTree('contracts/aqua/src'), pins, artifacts: {} };
-for (const name of ['Aqua', 'FramePayRecurringSwapVM', 'DemoToken', 'FramePayCreate2Factory']) {
+for (const name of ['Aqua', 'FramePayRecurringSwapVM', 'DemoToken', 'FramePayCreate2Factory', 'AppTestToken', 'FramePayTransferGuard']) {
   const artifact = JSON.parse(await readFile(resolve(root, `contracts/aqua/out/${name}.sol/${name}.json`)));
   if ((artifact.deployedBytecode.object.length - 2) / 2 > 24_576) throw new Error(`${name} exceeds EIP-170 runtime size.`);
   const value = { contractName: name, abi: artifact.abi, bytecode: artifact.bytecode.object, metadata: artifact.metadata };

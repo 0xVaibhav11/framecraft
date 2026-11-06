@@ -7,6 +7,8 @@
   "workspaces": ["packages/*", "apps/*"],
   "engines": { "node": ">=20.12" },
   "scripts": {
+    "passkey:demo": "npm run sdk:build && node scripts/passkey/browser-demo.mjs",
+    "passkey:deploy": "npm run sdk:build && node scripts/passkey/deploy.mjs",
     "defi:deploy": "npm run sdk:build && node scripts/defi/deploy.mjs",
     "aqua:bootstrap": "node scripts/aqua/bootstrap.mjs",
     "aqua:build": "node scripts/aqua/build.mjs",

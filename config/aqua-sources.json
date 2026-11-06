@@ -1,0 +1,30 @@
+{
+  "compiler": "0.8.30",
+  "sources": [
+    {
+      "name": "@1inch/swap-vm",
+      "repository": "https://github.com/1inch/swap-vm.git",
+      "commit": "f9f4acfed0ffa321c2108efe05ecf7a5e0bd8abc",
+      "path": "vendor/swap-vm/contracts",
+      "solidityTreeSha256": "e59427a5a365a37ff1587f53af043a9b05318195f29d25d0ce6830225f7264a8"
+    },
+    {
+      "name": "@1inch/aqua",
+      "version": "1.0.2-rc.2",
+      "path": "vendor/framepay-deps/node_modules/@1inch/aqua/contracts",
+      "solidityTreeSha256": "9a4dac5cbf284b1e499dd3bfc4ca45ad8300198dcfabe34daf732aa4d3031eea"
+    },
+    {
+      "name": "@1inch/solidity-utils",
+      "version": "7.0.3",
+      "path": "vendor/framepay-deps/node_modules/@1inch/solidity-utils/contracts",
+      "solidityTreeSha256": "98f022e521673fcf89e6e35c52256ccb849990602c891c9f4e5ef8438154c820"
+    },
+    {
+      "name": "@openzeppelin/contracts",
+      "version": "5.6.1",
+      "path": "vendor/framepay-deps/node_modules/@openzeppelin/contracts",
+      "solidityTreeSha256": "571d8c06afa71a4df40e0c9a4861b16a688500b1509db9a87433a5fe4f59a44e"
+    }
+  ]
+}

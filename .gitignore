@@ -12,3 +12,6 @@ vendor/
 .DS_Store
 contracts/out/
 contracts/cache/
+contracts/aqua/out/
+contracts/aqua/cache/
+contracts/aqua/artifacts/

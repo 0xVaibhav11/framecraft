@@ -1,0 +1,17 @@
+[profile.default]
+src = "src"
+test = "test"
+out = "out"
+cache_path = "cache"
+solc = "../../scripts/aqua/solc.mjs"
+evm_version = "prague"
+via_ir = true
+optimizer = true
+optimizer_runs = 600
+chain_id = 1337
+remappings = [
+  "@1inch/swap-vm/=../../vendor/swap-vm/",
+  "@1inch/aqua/=../../vendor/framepay-deps/node_modules/@1inch/aqua/",
+  "@1inch/solidity-utils/=../../vendor/framepay-deps/node_modules/@1inch/solidity-utils/",
+  "@openzeppelin/contracts/=../../vendor/framepay-deps/node_modules/@openzeppelin/contracts/"
+]

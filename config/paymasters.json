@@ -30,5 +30,21 @@
     "maxTransactionCostWei": "1000000000000000",
     "policy": "Open test sponsorship; anyone may consume the finite budget.",
     "explorerUrl": "https://explorer.altmempool.wtf/tx/0x227950d76879c6505cf0100e7820bff41b3fd871519fe2c757c2d26ca66cb9cd"
+  },
+  "devnet": {
+    "network": "devnet",
+    "gateway": "https://undertaken-decide-gathered-epic.trycloudflare.com/rpc",
+    "chainId": 1337,
+    "genesisHash": "0xcd2c67c2bd8cb5458eb2d878877668a0b86ed19fed44fbc874f3254106b97b88",
+    "address": "0xF13aB1CE9463FAaF2d01b25998F83ecF297Ffc22",
+    "transactionHash": "0x785212fbb2ffef459eaca2efb8dd2cf967800bd654f5050372caa6278699a396",
+    "blockNumber": "0x310c",
+    "blockHash": "0x083b0ae27e5f7e758f56aea919f380acd2a7f4bf9474cdbbcd96e48088824d50",
+    "codeHash": "0x81143fe086ef1841ea4e1ede28395a9361e4b5a660b8b75ecc58ac8160f18ae6",
+    "sourceSha256": "fc3fcee8c50057ac2970717c6bb35cf4e3c4cca9504e3d5d648ab7b7e1fe24f5",
+    "fundingWei": "10000000000000000",
+    "maxTransactionCostWei": "1000000000000000",
+    "policy": "Open test sponsorship; anyone may consume the finite budget.",
+    "explorerUrl": null
   }
 }

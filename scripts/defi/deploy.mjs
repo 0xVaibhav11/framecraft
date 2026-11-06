@@ -21,8 +21,8 @@ const call = (name, to, functionName, args = []) => ({ to, data: encodeFunctionD
 try {
   state.build = manifest;
   await demo.fundMaker();
-  const registry = JSON.parse(await readFile(resolve(root, 'config/paymasters.json'))).local;
-  check(registry?.genesisHash === state.genesisHash, 'Deploy the local paymaster first.');
+  const registry = JSON.parse(await readFile(resolve(root, 'config/paymasters.json')))[state.network];
+  check(registry?.genesisHash === state.genesisHash, 'Deploy the selected network paymaster first.');
   check(keccak256(await rpc('eth_getCode', [registry.address, 'latest'])) === registry.codeHash, 'Paymaster code mismatch.');
   const deploy = async (name, args) => (await demo.rawStep(name, { data: encodeDeployData({ abi: artifacts[name].abi, bytecode: artifacts[name].bytecode, args }) })).address;
   const aqua = await deploy('Aqua', []);
@@ -55,10 +55,10 @@ try {
     check(code !== '0x', `${name} has no deployed code.`);
     codeHashes[name] = keccak256(code);
   }
-  const record = { network: 'local', genesisHash: state.genesisHash, contracts, codeHashes,
+  const record = { network: demo.state.network, genesisHash: state.genesisHash, contracts, codeHashes,
     seedPosition: { name: 'Community buy pool', order: { ...order, traits: order.traits.toString() }, orderHash, policy: state.policy },
     deployment: state.steps.deployRouter.hash, seededAt: state.steps.seedPosition.hash };
-  await writeFile(resolve(root, 'config/defi.json'), JSON.stringify({ local: record, public: null }, null, 2) + '\n');
+  await writeFile(resolve(root, 'config/defi.json'), JSON.stringify({ ...JSON.parse(await readFile(resolve(root, 'config/defi.json'))), [demo.state.network]: record }, null, 2) + '\n');
   state.status = 'verified';
   state.app = record;
   await save();

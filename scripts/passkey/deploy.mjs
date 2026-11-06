@@ -16,9 +16,9 @@ try {
   // Known valid RIP-7212 vector, also used by OpenZeppelin to detect native support.
   const vector = '0x' + ['bb5a52f42f9c9261ed4361f59422a1e30036e7c32b270c8807a419feca605023', '5'.padStart(64,'0'), '1'.padStart(64,'0'), 'a71af64de5126a4a4e02b7922d66ce9415ce88a4c9d25514d91082c8725ac957', '5d47723c8fbe580bb369fec9c2665d8e30a435b9932645482e7c9f11e872296b'].join('');
   const result = await demo.rpc('eth_call', [{ to: '0x0000000000000000000000000000000000000100', data: vector }, 'latest']);
-  const record = { network: 'local', genesisHash: demo.state.genesisHash, factory: step.address, factoryCodeHash: step.codeHash, transactionHash: step.hash,
+  const record = { network: demo.state.network, genesisHash: demo.state.genesisHash, factory: step.address, factoryCodeHash: step.codeHash, transactionHash: step.hash,
     verifier: 'OpenZeppelin WebAuthn/P256 5.6.1', nativeP256: result !== '0x' && BigInt(result) === 1n, sourceSha256: manifest.sourceTreeSha256 };
-  await writeFile(resolve(root, 'config/passkeys.json'), JSON.stringify({ local: record, public: null }, null, 2) + '\n');
+  await writeFile(resolve(root, 'config/passkeys.json'), JSON.stringify({ ...JSON.parse(await readFile(resolve(root, 'config/passkeys.json'))), [demo.state.network]: record }, null, 2) + '\n');
   demo.state.status = 'verified'; demo.state.passkey = record; await demo.save();
   console.log(JSON.stringify(record, null, 2));
 } finally { try { await demo.evidence(); } finally { await demo.release(); } }

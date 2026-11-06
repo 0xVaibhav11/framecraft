@@ -54,7 +54,7 @@ export function safeError(error) {
 }
 
 export async function writeEvidence(label, value) {
-  const directory = resolve(root, 'evidence/milestone-1');
+  const directory = resolve(root, '.framepay/reports/milestone-1');
   await mkdir(directory, { recursive: true });
   const name = `${new Date().toISOString().replaceAll(':', '-')}-${label}-${process.pid}.json`;
   const path = resolve(directory, name);
@@ -70,6 +70,7 @@ export async function checkPins(cfg) {
     const actual = command('git', ['-C', resolve(workshop, info.path), 'rev-parse', 'HEAD']);
     checks.push({ name, expected: info.commit, actual: actual.value ?? null, matches: actual.value === info.commit });
   }
+  // Generated Compose peer identifiers change on startup; pin the start/setup sources instead.
   for (const [file, expected] of Object.entries(lock.sha256)) {
     let actual = null;
     try { actual = sha256(await readFile(resolve(workshop, file))); } catch { /* recorded as mismatch */ }

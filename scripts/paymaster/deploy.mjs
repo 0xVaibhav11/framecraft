@@ -7,7 +7,7 @@ import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import { networkFor, createNetworkRpc, identifyNetwork, waitReceipt, assertDeploymentReceipt, isHash, isQuantity } from './runtime.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
-if (process.argv.length !== 4 || process.argv[2] !== '--network') throw new Error('Usage: npm run paymaster:deploy -- --network local|public');
+if (process.argv.length !== 4 || process.argv[2] !== '--network') throw new Error('Usage: npm run paymaster:deploy -- --network devnet|local|public');
 const network = networkFor(process.argv[3]);
 const rpc = createNetworkRpc(network);
 const directory = resolve(root, '.framepay/paymaster');
@@ -104,7 +104,7 @@ try {
   const record = { network: network.id, gateway: network.rpcUrl, chainId: network.chainId, genesisHash,
     address: state.address, transactionHash: state.transactionHash, blockNumber: receipt.blockNumber, blockHash: receipt.blockHash,
     codeHash: keccak256(code), sourceSha256: sourceHash, fundingWei: funding.toString(), maxTransactionCostWei: maxCost.toString(),
-    policy: 'Open test sponsorship; anyone may consume the finite budget.', explorerUrl: `${network.explorerUrl}/tx/${state.transactionHash}` };
+    policy: 'Open test sponsorship; anyone may consume the finite budget.', explorerUrl: network.explorerUrl ? `${network.explorerUrl}/tx/${state.transactionHash}` : null };
   const registry = await readJson(registryPath, { local: null, public: null });
   registry[network.id] = record;
   await save(registryPath, registry);
@@ -117,7 +117,7 @@ try {
   console.error(report.error);
   process.exitCode = 1;
 } finally {
-  const evidence = resolve(root, 'evidence/paymaster');
+  const evidence = resolve(root, '.framepay/reports/paymaster');
   await mkdir(evidence, { recursive: true });
   await writeFile(resolve(evidence, `${network.id}-${Date.now()}.json`), JSON.stringify(report, null, 2) + '\n', { flag: 'wx' });
   if (lock) { await lock.close(); await unlink(resolve(directory, 'deploy.lock')); }

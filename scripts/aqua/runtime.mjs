@@ -11,24 +11,26 @@ export const json = value => JSON.stringify(value, (_, v) => typeof v === 'bigin
 export const check = (condition, message) => { if (!condition) throw new Error(message); };
 export const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-/// Local-only journal: save each expected hash before broadcasting once; resume by inspecting it.
-export async function openDemo({ runId = 'default' } = {}) {
+/// Per-network journal: save each expected hash before broadcasting once; resume by inspecting it.
+export async function openDemo({ runId = 'default', networkId = process.argv.includes('--network') ? process.argv[process.argv.indexOf('--network') + 1] : 'devnet' } = {}) {
   check(/^[a-z0-9][a-z0-9-]{0,31}$/.test(runId), 'Invalid demo run name.');
-  const network = frameNetworks.local;
+  check(['local', 'devnet'].includes(networkId), 'Select --network devnet or local.');
+  const network = frameNetworks[networkId];
   const rpc = createNetworkRpc(network);
   const genesisHash = await identifyNetwork(rpc, network);
-  const directory = runId === 'default' ? resolve(root, '.framepay/aqua') : resolve(root, '.framepay/aqua/runs', runId);
+  const base = networkId === 'local' ? resolve(root, '.framepay/aqua') : resolve(root, '.framepay/aqua', networkId);
+  const directory = runId === 'default' ? base : resolve(base, 'runs', runId);
   await mkdir(directory, { recursive: true, mode: 0o700 });
-  const lockPath = resolve(directory, 'local.lock');
+  const lockPath = resolve(directory, `${networkId}.lock`);
   const lock = await open(lockPath, 'wx', 0o600);
-  const statePath = resolve(directory, 'local.json');
+  const statePath = resolve(directory, `${networkId}.json`);
   const release = async () => { await lock.close(); await unlink(lockPath); };
   try {
     let state;
     try { state = JSON.parse(await readFile(statePath, 'utf8')); }
     catch (error) { if (error.code !== 'ENOENT') throw error; }
     check(!state || state.genesisHash === genesisHash, 'Saved Aqua demo belongs to another genesis. Preserve its evidence before starting a new run.');
-    state ??= { schemaVersion: 1, kind: 'aqua-recurring-frame-demo', network: 'local', gateway: network.rpcUrl,
+    state ??= { schemaVersion: 1, kind: 'aqua-recurring-frame-demo', network: networkId, gateway: network.rpcUrl,
       chainId: network.chainId, genesisHash, startedAt: new Date().toISOString(), status: 'setup', steps: {} };
     state.runId = runId;
     const save = async () => {
@@ -146,9 +148,9 @@ export async function openDemo({ runId = 'default' } = {}) {
       return step;
     }
     async function evidence() {
-      const directory = resolve(root, 'evidence/aqua');
+      const directory = resolve(root, '.framepay/reports/aqua');
       await mkdir(directory, { recursive: true });
-      const path = resolve(directory, `local-${Date.now()}.json`);
+      const path = resolve(directory, `${networkId}-${Date.now()}.json`);
       await writeFile(path, json(state), { flag: 'wx' });
       console.log(`Evidence: ${path}`);
       return path;

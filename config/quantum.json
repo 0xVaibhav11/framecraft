@@ -1,0 +1,15 @@
+{
+  "local": null,
+  "public": null,
+  "devnet": {
+    "genesisHash": "0xcd2c67c2bd8cb5458eb2d878877668a0b86ed19fed44fbc874f3254106b97b88",
+    "factory": "0x7F99b0D45eae2CA1F4A50c25C41D8b63096c3f0c",
+    "factoryCodeHash": "0x9bbba80c62f2dfde839125543b896b53f04c4686aeae522d244a4da8c89c0441",
+    "verifier": "0x94649D0E7E79d94Af610628bD0FA55c05eff2A03",
+    "verifierCodeHash": "0x43f2fdaebbb373d473ef8778dd477cf73510190fee87da05ea45f3cbcfb64561",
+    "factoryTransaction": "0xea2a1c8c73bdd30e2ad1752c79f55ea329be69c4a85d4812178c06a80e2aec7a",
+    "verifierTransaction": "0x893d1078d0a5bde0c64f3d74193ea98c0a7a408fea0813bb5fd4af22811c8168",
+    "sourceSha256": "17e2973670110f8c1f1fc7820b7076b3677bf82769d3723baffcda924e391839",
+    "algorithm": "ETHFalcon-512 Keccak"
+  }
+}

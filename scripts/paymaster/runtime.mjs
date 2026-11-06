@@ -2,7 +2,7 @@ import { frameNetworks } from '@framepay/sdk';
 export const isHash = value => typeof value === 'string' && /^0x[0-9a-fA-F]{64}$/.test(value);
 export const isQuantity = value => typeof value === 'string' && /^0x(?:0|[1-9a-fA-F][0-9a-fA-F]*)$/.test(value);
 export function networkFor(id) {
-  if (!Object.hasOwn(frameNetworks, id)) throw new Error('Select --network local or --network public.');
+  if (!Object.hasOwn(frameNetworks, id)) throw new Error('Select --network devnet, local or public.');
   return frameNetworks[id];
 }
 export function createNetworkRpc(network, fetchImpl = fetch) {
@@ -25,6 +25,7 @@ export async function identifyNetwork(rpc, network) {
   if (!isQuantity(id) || BigInt(id) !== BigInt(network.chainId)) throw new Error('Wrong devnet chain ID.');
   const genesis = await rpc('eth_getBlockByNumber', ['0x0', false]);
   if (!genesis || !isHash(genesis.hash)) throw new Error('Cannot identify the devnet genesis block.');
+  if (network.genesisHash && genesis.hash !== network.genesisHash) throw new Error('Configured devnet genesis changed. Review deployments before using this chain.');
   return genesis.hash;
 }
 export async function waitReceipt(rpc, hash, { timeoutMs = 120_000, intervalMs = 2_000 } = {}) {

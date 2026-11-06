@@ -88,3 +88,16 @@ test('committed paymaster artifact matches the reviewed contract source', async 
   assert.equal(artifact.helperPackageVersion, '0.0.1');
   assert.match(artifact.bytecode, /^0x[0-9a-f]+$/);
 });
+
+
+test('FramePay devnet uses only the selected tunnel and rejects a changed genesis', async () => {
+  assert.equal(validateGateway(frameNetworks.devnet.rpcUrl, 'devnet'), true);
+  for (const url of [frameNetworks.devnet.rpcUrl + '?upstream=x', 'https://other.trycloudflare.com/rpc', frameNetworks.local.rpcUrl]) assert.equal(validateGateway(url, 'devnet'), false);
+  const response = await handleRpc(request('devnet'), { gateway: frameNetworks.local.rpcUrl, fetchImpl: async url => {
+    assert.equal(url, frameNetworks.devnet.rpcUrl);
+    return Response.json({jsonrpc:'2.0',id:1,result:'0x539'});
+  }});
+  assert.equal(response.status, 200);
+  await assert.rejects(identifyNetwork(async method => method === 'eth_chainId' ? '0x539' : {hash}, frameNetworks.devnet), /genesis changed/);
+  assert.equal(await identifyNetwork(async method => method === 'eth_chainId' ? '0x539' : {hash:frameNetworks.devnet.genesisHash}, frameNetworks.devnet), frameNetworks.devnet.genesisHash);
+});

@@ -41,7 +41,6 @@
     "src/steps/step_2_tx_first.ts": "e3a830e7196f9b2bf96c09d74bc08a3546abce873f4311e69fd504c75e61ffdc",
     "mempool-workshop-sidecar/deploy/local/start.mjs": "71dbf6ffa23eae4f610fcbe871317bcbe20b8ac1703d3ef9715be35af3ec8417",
     "mempool-workshop-sidecar/deploy/local/setup.mjs": "bc98fda71c19a9b369a1254446feb35a7c3315ea577b8bf4bdeaac6326b73b96",
-    "mempool-workshop-sidecar/deploy/local/compose.json": "62ee313688bf41544d78045c27fdd6e59aa15f61475ceaf159605fa91a6dd07d",
     "mempool-workshop-sidecar/bun.lock": "dab2a961c71cb26f062eb7013b174094807e3dc277a622ed8d13a8134e93caa5",
     "node_modules/@forshtat/hegota-support/package.json": "4b1bdec9d990fa318fe5bb1995e73c4f55090c2097c098c4b8e8429364003ff4",
     "node_modules/viem/package.json": "e6d38e6cb7661f13667fdf470937031a3d14f82f4b4f0e7904896a257ac8414a",
@@ -60,5 +59,8 @@
     "node_modules/@forshtat/hegota-support/dist/tx/index.js": "c699ef123fc9405dcd493c025510a47311c97e68ef256449c659e31b6bc4cd91",
     "node_modules/@forshtat/hegota-support/dist/tx/recentRoots.js": "d5b72e4e1954d41568ffb15eea29d46155c25cbe44597d3143531f97e347f30c",
     "node_modules/@forshtat/hegota-support/dist/tx/types.js": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
-  }
+  },
+  "generatedFiles": [
+    "mempool-workshop-sidecar/deploy/local/compose.json"
+  ]
 }

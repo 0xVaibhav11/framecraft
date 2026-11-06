@@ -9,5 +9,6 @@
     "nativeP256": true,
     "sourceSha256": "81bb7bb784407012a36db0f137194fbf721fc5ff9c23fea45d61c6e62d15e759"
   },
-  "public": null
+  "public": null,
+  "devnet": null
 }

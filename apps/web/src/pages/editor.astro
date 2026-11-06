@@ -6,7 +6,8 @@ import EvmlEditor from "../components/evml-editor";
   <head>
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" href="/favicon.ico" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="Write EIP-8141 frame transactions in EVMcrispr's EVML and send them to a FramePay devnet." />
     <title>EVML editor · FramePay</title>
@@ -14,6 +15,9 @@ import EvmlEditor from "../components/evml-editor";
   <body class="evml-body">
     <main class="evml-page">
       <header class="evml-heading">
+        <a class="evml-logo" href="/" aria-label="Framecraft home">
+          <img src="/logo-on-light.svg" alt="Framecraft" width="149" height="24" />
+        </a>
         <p class="evml-eyebrow">EVMCRISPR × FRAMEPAY</p>
         <h1>Write frames in EVML.</h1>
         <p>

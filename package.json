@@ -1,0 +1,24 @@
+{
+  "name": "framepay-sdk",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "FramePay SDK prototype and frame-devnet development tooling",
+  "workspaces": ["packages/*", "apps/*"],
+  "engines": { "node": ">=20.12" },
+  "scripts": {
+    "devnet:inspect": "node scripts/devnet/inspect.mjs",
+    "devnet:smoke": "npm run sdk:build && node scripts/devnet/smoke.mjs",
+    "sdk:bootstrap": "node scripts/link-workshop-deps.mjs",
+    "web:bootstrap": "node scripts/link-web-deps.mjs",
+    "web:dev": "npm run sdk:build && npm run dev --workspace @framepay/docs",
+    "web:build": "npm run sdk:build && npm run build --workspace @framepay/docs",
+    "web:typecheck": "tsc --noEmit -p apps/web/tsconfig.json",
+    "sdk:build": "tsc -p packages/sdk/tsconfig.json && tsc -p examples/tsconfig.json",
+    "test": "npm run sdk:build && node --test tests/*.test.mjs"
+  },
+  "devDependencies": {
+    "typescript": "7.0.2",
+    "viem": "2.57.11"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "@framepay/sdk",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Experimental viem actions for the ethrex EIP-8141 workshop profile",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" }
+  },
+  "files": ["dist"],
+  "dependencies": { "@forshtat/hegota-support": "0.0.1" },
+  "peerDependencies": { "viem": "^2.57.0" }
+}

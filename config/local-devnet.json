@@ -1,0 +1,16 @@
+{
+  "workshopPath": "../mempool-workshop",
+  "sidecarPath": "mempool-workshop-sidecar",
+  "gatewayUrl": "http://localhost:14337/rpc",
+  "explorerUrl": "http://localhost:5173/",
+  "chainId": 1337,
+  "profile": "ethrex-eip8141-tracer",
+  "stakingRegistry": "0xd51c04d7a0b01124e84de152f4e56d9eecb22d2f",
+  "entryPoint": "0x00000000000000000000000000000000000000aa",
+  "recipient": "0x8943545177806ED17B9F23F0a21ee5948eCaa776",
+  "transferWei": "1000000000",
+  "maxFeePerGasWei": "2000000000",
+  "rpcTimeoutMs": 8000,
+  "receiptTimeoutMs": 120000,
+  "pollIntervalMs": 2000
+}

@@ -1,0 +1,12 @@
+node_modules/
+**/dist/
+**/.next/
+**/tsconfig.tsbuildinfo
+vendor/
+.framepay/
+.env
+.env.*
+!.env.example
+.workshop-state.json
+*.log
+.DS_Store

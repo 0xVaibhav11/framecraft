@@ -1,0 +1,44 @@
+{
+  "swapvm": {
+    "revision": "f9f4acfed0ffa321c2108efe05ecf7a5e0bd8abc",
+    "archiveSha256": "cd756e0344bade47fcb87d1c45359476ac13c52fb2674e73f8cdb1dd2d6c2b25"
+  },
+  "dependencies": [
+    {
+      "name": "@1inch/aqua",
+      "version": "1.0.1",
+      "url": "https://registry.npmjs.org/@1inch/aqua/-/aqua-1.0.1.tgz",
+      "sha256": "36549e4b2bdc98999b6d2d4111881dfa7d73e494a661d977d1c357e70e22ea65",
+      "treeSha256": "4713bc90a0d2b5a455cc085951c7b97a686d5edd7369d2428e6fc040a639f396"
+    },
+    {
+      "name": "@1inch/solidity-utils",
+      "version": "7.0.3",
+      "url": "https://registry.npmjs.org/@1inch/solidity-utils/-/solidity-utils-7.0.3.tgz",
+      "sha256": "169424febc2e843603005c71d62ec37ad9fd88eae2abd2f4853ddb4f6a3a17c5",
+      "treeSha256": "03868330df9e6b62391a3ac5ac1fca24f5f1d2779c949ddf32912038ce7a4d67"
+    },
+    {
+      "name": "@openzeppelin/contracts",
+      "version": "5.6.1",
+      "url": "https://registry.npmjs.org/@openzeppelin/contracts/-/contracts-5.6.1.tgz",
+      "sha256": "bd202ef9a2fd09f6005edc18437b4d3090841d0f676c01c814ee9608581d2e63",
+      "treeSha256": "571d8c06afa71a4df40e0c9a4861b16a688500b1509db9a87433a5fe4f59a44e"
+    }
+  ],
+  "railgun": {
+    "0x12e5f2bb0d2d3bf66ba4ad115da3605a5e46103c4ad208baf3662b039f661d97.json": "4695136873baf72abd9efec1ac74443f7820e5cd1ecd0bb718f2606dbf124a3f",
+    "0x13954e0d1af4c619efbd502299e78e116d1309b2b85c15ac6fe09838bb8622aa.json": "f4e2502aa18de280d4f2efd66f6739686e1829aa423a1c3619392a8f5b0f98cf",
+    "railgun-verification-keys.json": "0e859605432b7e30f5c03acb0b44af4aaf4ba0975af147e3b7050708881e41f6",
+    "0x22f522952985c00705187839388aa76c80a7684f186f29a47c05bba3a17765e6.json": "b058b2e93cb656c6f0a6793d41246e29c6f5d200cd95243006ba3cf92c42d50c",
+    "0x1e7e34c103de436502520ee4d38b9ad1879645c8baf0547ab092bb034cfef679.json": "3044d946afb06edabd9f2c196de7075dbf1594358663ddbe3f2b13b73fc203df"
+  },
+  "circuit": {
+    "cid": "QmUsmnK4PFc7zDp2cmC4wBZxYLjNyRgWfs5GNcJJ2uLcpU",
+    "hashes": {
+      "wasm": "6ce87ddb4e33cff9564338a8b1f58047b22809e5d198f243c777d1aa4eaaa1e3",
+      "vkey.json": "9369fa6ad3d7a1becf4b10cf4bd6a7eb83725cfb5cf75a08b191c5bc2cd479f4",
+      "zkey": "8ef8e7abcfb5e60fb593d4d961657465f498435a0835adef05acc09534d7557b"
+    }
+  }
+}

@@ -1,0 +1,21 @@
+[profile.default]
+src = "src"
+test = "test"
+out = "out"
+cache_path = "cache"
+solc_version = "0.8.30"
+evm_version = "cancun"
+via_ir = true
+optimizer = true
+optimizer_runs = 1
+chain_id = 1337
+fs_permissions = [{ access = "read", path = "../../config/private" }]
+allow_paths = ["../../vendor", ".."]
+remappings = [
+  "framepay/=../src/",
+  "framepay-test/=../test/",
+  "swap-vm/=../../vendor/swap-vm/",
+  "@1inch/aqua/=../../vendor/private-deps/@1inch/aqua/",
+  "@1inch/solidity-utils/=../../vendor/private-deps/@1inch/solidity-utils/",
+  "@openzeppelin/contracts/=../../vendor/private-deps/@openzeppelin/contracts/"
+]

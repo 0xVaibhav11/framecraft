@@ -12,7 +12,7 @@ contracts/broadcast/
 contracts/aqua/out/
 contracts/aqua/cache/
 contracts/aqua/artifacts/
-apps/poc/public/ethfalcon/
+apps/*/public/ethfalcon/
 
 # Local credentials, deployment journals, and exported test accounts
 .framepay/

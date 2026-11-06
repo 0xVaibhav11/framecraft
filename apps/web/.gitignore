@@ -22,3 +22,8 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# vendored EVMcrispr checkout (scripts/vendor-evmcrispr.mjs)
+.evmcrispr/
+# Monaco build copied from it (scripts/copy-monaco.mjs)
+public/vs/

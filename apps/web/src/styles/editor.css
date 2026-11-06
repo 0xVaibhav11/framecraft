@@ -1,0 +1,255 @@
+/* The /editor page. EVMcrispr's terminal brings its own (scoped) styles. */
+:root {
+  --evml-ink: #182822;
+  --evml-text: #4f6058;
+  --evml-muted: #88958f;
+  --evml-line: #e1e8e0;
+  --evml-green: #166b53;
+  --evml-green-light: #e9f3ed;
+  --evml-red: #a4473a;
+  --evml-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+.evml-body {
+  margin: 0;
+  background: #f7f9f8;
+  color: var(--evml-text);
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+.evml-page {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 40px 32px;
+}
+.evml-page code {
+  font-family: var(--evml-mono);
+  font-size: 0.92em;
+}
+.evml-eyebrow {
+  font-family: var(--evml-mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--evml-muted);
+  margin: 0 0 10px;
+}
+.evml-heading h1 {
+  margin: 0;
+  font-size: 36px;
+  letter-spacing: -1px;
+  color: var(--evml-ink);
+}
+.evml-heading p:last-child {
+  margin: 12px 0 0;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.evml-heading a {
+  color: var(--evml-green);
+  margin-left: 6px;
+}
+.evml-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 28px 0 16px;
+  font-size: 13px;
+}
+.evml-toolbar label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--evml-ink);
+  font-weight: 500;
+}
+.evml-toolbar select {
+  font: inherit;
+  padding: 6px 8px;
+  border: 1px solid var(--evml-line);
+  border-radius: 6px;
+  background: #fff;
+}
+.evml-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #c9b45c;
+}
+.evml-dot.online {
+  background: #3fae74;
+}
+.evml-muted {
+  color: var(--evml-muted);
+  font-family: var(--evml-mono);
+  font-size: 12px;
+}
+.evml-banner {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border: 1px solid #e7e7d5;
+  background: #fbfbf4;
+  border-radius: 7px;
+  color: #85885c;
+  font-size: 13px;
+}
+.evml-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.75fr) minmax(280px, 0.85fr);
+  gap: 20px;
+  align-items: start;
+}
+.evml-terminal,
+.evml-side {
+  min-width: 0;
+}
+.evml-side {
+  display: grid;
+  gap: 20px;
+}
+.evml-card {
+  background: #fff;
+  border: 1px solid var(--evml-line);
+  border-radius: 9px;
+  padding: 18px;
+}
+.evml-card h2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 0 14px;
+  font-size: 14px;
+  color: var(--evml-ink);
+}
+.evml-badge {
+  font-family: var(--evml-mono);
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--evml-muted);
+  border: 1px solid var(--evml-line);
+  border-radius: 3px;
+  padding: 1px 5px;
+}
+.evml-account {
+  border: 1px solid #e0e9da;
+  background: #f8faf6;
+  border-radius: 6px;
+}
+.evml-account > div {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 8px;
+  padding: 10px 12px;
+}
+.evml-account > div + div {
+  border-top: 1px solid #e6ecdf;
+}
+.evml-account small {
+  grid-column: 1 / -1;
+  font-family: var(--evml-mono);
+  font-size: 10px;
+  letter-spacing: 0.6px;
+  color: var(--evml-muted);
+}
+.evml-account strong {
+  font-family: var(--evml-mono);
+  font-weight: 500;
+  font-size: 13px;
+  color: #4f6655;
+}
+.evml-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+}
+.evml-button {
+  font: inherit;
+  font-size: 13px;
+  padding: 8px 12px;
+  border: 1px solid var(--evml-green);
+  border-radius: 6px;
+  background: var(--evml-green);
+  color: #fff;
+  cursor: pointer;
+}
+.evml-link {
+  font: inherit;
+  font-size: 12px;
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--evml-green);
+  cursor: pointer;
+}
+.evml-button:disabled,
+.evml-link:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.evml-hint {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--evml-muted);
+}
+.evml-error {
+  color: var(--evml-red);
+}
+.evml-sent {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.evml-sent li {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 2px 10px;
+  padding: 9px 11px;
+  border: 1px solid #e0e9da;
+  border-radius: 6px;
+  background: #f8faf6;
+  font-size: 12px;
+}
+.evml-sent small {
+  grid-column: 2;
+  color: var(--evml-muted);
+  overflow-wrap: anywhere;
+}
+.evml-sent a {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  color: var(--evml-green);
+}
+.evml-status {
+  grid-row: 1 / span 2;
+  font-family: var(--evml-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: #f4f4e8;
+  color: #8d8d5c;
+}
+.evml-status.ok {
+  background: var(--evml-green-light);
+  color: var(--evml-green);
+}
+.evml-status.failed {
+  background: #f8ebe8;
+  color: var(--evml-red);
+}
+@media (max-width: 1050px) {
+  .evml-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 600px) {
+  .evml-page {
+    padding: 24px 16px;
+  }
+  .evml-toolbar {
+    flex-wrap: wrap;
+  }
+}

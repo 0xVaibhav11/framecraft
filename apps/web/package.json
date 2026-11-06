@@ -2,23 +2,36 @@
   "name": "@framepay/web",
   "type": "module",
   "version": "0.0.0",
+  "private": true,
   "engines": {
     "node": ">=22.23.4"
   },
+  "evmcrispr": {
+    "repo": "https://github.com/EVMcrispr/evmcrispr.git",
+    "branch": "next",
+    "commit": "1404f73d23c2fb882a1985c13f94c8533d10eadc"
+  },
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro check && astro build",
+    "prepare:evmcrispr": "node scripts/vendor-evmcrispr.mjs && node scripts/copy-monaco.mjs",
+    "dev": "bun run prepare:evmcrispr && astro dev",
+    "build": "bun run prepare:evmcrispr && astro check && astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "typecheck": "astro check"
+    "typecheck": "bun run prepare:evmcrispr && astro check"
   },
   "dependencies": {
-    "astro": "^7.4.7"
+    "@astrojs/react": "^7.1.4",
+    "@framepay/sdk": "workspace:*",
+    "astro": "^7.4.7",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "viem": "2.57.11"
   },
-  "private": true,
   "devDependencies": {
     "@astrojs/check": "^0.9.12",
     "@emnapi/runtime": "1.11.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "typescript": "^6"
   }
 }

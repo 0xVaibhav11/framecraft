@@ -1,5 +1,25 @@
 {
   "extends": "astro/tsconfigs/strict",
   "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["dist"]
+  "exclude": ["dist", ".evmcrispr", "public"],
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    // Every @evmcrispr/* import resolves to the vendored EVMcrispr checkout
+    // (scripts/vendor-evmcrispr.mjs), matching the Vite aliases the site
+    // bundles with; the checkout itself is excluded above.
+    "paths": {
+      "@evmcrispr/core": ["./.evmcrispr/packages/core/src/index.ts"],
+      "@evmcrispr/editor": ["./.evmcrispr/packages/editor/src/index.ts"],
+      "@evmcrispr/sdk": ["./.evmcrispr/packages/sdk/src/index.ts"],
+      "@evmcrispr/sdk/onchain": ["./.evmcrispr/packages/sdk/src/onchain/index.ts"],
+      "@evmcrispr/module-*": ["./.evmcrispr/modules/*/src/index.ts"],
+      // The vendored sources would otherwise type against the checkout's own
+      // viem and React, whose nominally identical types do not unify.
+      "viem": ["./node_modules/viem"],
+      "viem/*": ["./node_modules/viem/*"],
+      "react": ["./node_modules/@types/react"],
+      "react/*": ["./node_modules/@types/react/*"]
+    }
+  }
 }

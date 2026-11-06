@@ -33,5 +33,9 @@ jobs:
         with:
           version: v1.5.0
       - run: bun install --frozen-lockfile
+      - run: bun run private:setup
       - run: bun run check:push
       - run: bun run contracts:test
+      - run: bun run private:test
+      - run: bun run private:contracts:test
+      - run: bun run private:test:proofs

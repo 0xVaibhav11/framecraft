@@ -27,6 +27,8 @@ The vault holds assets and enforces authorization. EIP-8141 supplies the native 
 
 Post-quantum protection applies to the intended vault authorization path. It does not itself encrypt pending transactions.
 
+Private transfers, atomic swaps, and maker-owned quoting inventory are available through the new TypeScript/Effect `@framepay/privacy` package and Foundry project. Start with `bun run private:setup`; see the [private payments guide](docs/private-payments.md) for the bundle analysis, API, real-proof tests, and native-frame demo.
+
 Implementation and setup guides: [DeFi app](docs/defi-app.md), [recurring swaps](docs/aqua-recurring-buy.md), and [ETHFalcon wallets](docs/quantum-wallet.md).
 
 ## Monorepo layout
@@ -41,7 +43,8 @@ framepay/
 │   ├── poc/                 # Existing Next.js app (@framepay/poc)
 │   └── web/                 # Astro site with TypeScript (@framepay/web)
 ├── packages/
-│   └── sdk/                 # Shared TypeScript SDK (@framepay/sdk)
+│   ├── sdk/                 # Shared TypeScript SDK (@framepay/sdk)
+│   └── privacy/             # RAILGUN and Effect services (@framepay/privacy)
 ├── contracts/               # Foundry workspace (@framepay/contracts)
 │   ├── src/                 # Solidity contracts
 │   ├── test/                # Solidity tests (*.t.sol)

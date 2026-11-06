@@ -340,6 +340,11 @@ if (admission.available) {
 
 export const searchEntries = [
   {
+    title: "DeFi app",
+    description: "Swap, send sponsored transfers, and manage recurring buys and transaction rules",
+    href: "/app",
+  },
+  {
     title: "Overview",
     description: "Start building with native frame transactions",
     href: "/",

@@ -44,6 +44,17 @@ test("playground forwards allowed requests once to a fixed gateway", async () =>
   });
 });
 
+test("Next loopback normalization accepts only the actual same-port browser host", async () => {
+  const fetchImpl = async () => Response.json({ jsonrpc: "2.0", id: 1, result: "0x539" });
+  const valid = request(payload(), { origin: "http://127.0.0.1:3000", host: "127.0.0.1:3000" });
+  assert.equal((await handleRpc(valid, { fetchImpl })).status, 200);
+  for (const headers of [
+    { origin: "http://127.0.0.1:4000", host: "127.0.0.1:4000" },
+    { origin: "http://evil.test:3000", host: "evil.test:3000" },
+    { origin: "http://127.0.0.1:3000", host: "evil.test:3000" },
+  ]) assert.equal((await handleRpc(request(payload(), headers), { fetchImpl: noFetch })).status, 403);
+});
+
 test("playground rejects unsupported RPC, batches, malformed params and foreign chain sends", async () => {
   const address = `0x${"11".repeat(20)}`;
   const envelope = {

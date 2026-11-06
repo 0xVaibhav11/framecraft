@@ -38,9 +38,9 @@ export default function Overview() {
           <Link className="button primary" href="/docs/quickstart">
             Start building <Icon name="arrow" size={16} />
           </Link>
-          <Link className="button secondary" href="/playground">
-            <Icon name="terminal" size={16} />
-            Open playground
+          <Link className="button secondary" href="/app">
+            <Icon name="wallet" size={16} />
+            Open DeFi app
           </Link>
         </div>
         <div className="compatibility">

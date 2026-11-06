@@ -3,11 +3,15 @@ const address = (value) =>
 const hash = (value) =>
   typeof value === "string" && /^0x[0-9a-fA-F]{64}$/.test(value);
 const latest = (value) => value === "latest" || value === "pending";
+const hexData = (value) => typeof value === "string" && value.length <= 65_538 && /^0x(?:[0-9a-fA-F]{2})*$/.test(value);
 const checks = {
   eth_chainId: (p) => p.length === 0,
   eth_blockNumber: (p) => p.length === 0,
   eth_getBlockByNumber: (p) =>
-    p.length === 2 && p[0] === "0x0" && p[1] === false,
+    p.length === 2 && ["0x0", "latest"].includes(p[0]) && p[1] === false,
+  eth_call: (p) => p.length === 2 && p[1] === "latest" && p[0] && !Array.isArray(p[0])
+    && Object.keys(p[0]).every(key => ["to", "data", "from"].includes(key))
+    && address(p[0].to) && hexData(p[0].data) && (p[0].from === undefined || address(p[0].from)),
   skandha_explorer_info: (p) => p.length === 0,
   eth_getBalance: (p) => p.length === 2 && address(p[0]) && latest(p[1]),
   eth_getCode: (p) => p.length === 2 && address(p[0]) && latest(p[1]),

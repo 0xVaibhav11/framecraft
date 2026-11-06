@@ -20,7 +20,20 @@ export async function handleRpc(
   const network = frameNetworks[networkId];
   const gateway = networkId === "local" ? localGateway : network.rpcUrl;
   const origin = request.headers.get("origin");
-  if (origin && origin !== new URL(request.url).origin)
+  const requestUrl = new URL(request.url);
+  let sameOrigin = !origin || origin === requestUrl.origin;
+  // Next dev may canonicalize 127.0.0.1 to localhost in request.url. Accept the original
+  // loopback host only when the browser Origin matches the actual Host header and port.
+  if (origin && !sameOrigin) {
+    try {
+      const source = new URL(origin);
+      const loopback = value => ["localhost", "127.0.0.1", "[::1]"].includes(value);
+      sameOrigin = loopback(source.hostname) && loopback(requestUrl.hostname)
+        && source.protocol === "http:" && requestUrl.protocol === "http:"
+        && source.port === requestUrl.port && source.host === request.headers.get("host");
+    } catch { /* Invalid origins remain rejected. */ }
+  }
+  if (!sameOrigin)
     return failure(
       null,
       -32600,

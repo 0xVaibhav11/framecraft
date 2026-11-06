@@ -32,6 +32,7 @@ const groups: {
   {
     label: "BUILD & EXPLORE",
     items: [
+      { label: "DeFi app", href: "/app", icon: "wallet", badge: "NEW" },
       {
         label: "Playground",
         href: "/playground",
@@ -130,6 +131,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const active = searchEntries.find((item) => item.href === pathname);
   useEffect(() => setMobileOpen(false), [pathname]);
+  if (pathname === "/app") return <NetworkProvider>{children}</NetworkProvider>;
   return (
     <NetworkProvider>
       <div className="workspace">

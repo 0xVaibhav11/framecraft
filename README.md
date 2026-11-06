@@ -4,7 +4,9 @@ A developer SDK and reference DeFi app designed to bring post-quantum vault auth
 
 The project lets applications offer users a smart-account vault that can authorize actions with a post-quantum key and transfer or trade tokens without holding ETH for gas. An application-funded paymaster covers the network gas cost.
 
-**Status:** Early development. The viem SDK, network-aware playground, bounded test paymaster and recurring Aqua/SwapVM buy position are implemented. The local demo verified four sponsored frame swaps exchanging 25 test-USDC-equivalent tokens for 2.5 test-asset tokens, with zero ETH held by the taker. Successful frame receipts, token balance changes and period/total-limit rejection checks are recorded in `evidence/aqua/`. PQ vault authorization, token-fee reimbursement and a swap UI remain planned.
+**Status:** The viem SDK, playground, bounded test paymaster, recurring Aqua/SwapVM position and reference DeFi app are implemented on the local frame devnet. The app supports swaps, sponsored transfers, editable transaction assertions, and creating/cancelling recurring positions. Browser verification completed five real frame transactions from an account holding zero ETH; receipts and token transfers are recorded in `evidence/defi/`. PQ vault authorization and token-fee reimbursement remain planned.
+
+Open **[the DeFi app](http://localhost:3000/app)** with `npm run web:dev`. Create a test account, get test tokens, then use **Swap**, **Transfer**, **Positions**, and **Rules**. See [the app guide](docs/defi-app.md) for contract setup and the assertion model. The app currently uses local test assets and a browser test account.
 
 Run the contract tests with `npm run aqua:test` and the local swap demo with `npm run aqua:demo` after [Aqua setup](docs/aqua-recurring-buy.md). The guide includes source pins, deployment details, strategy rules and evidence links.
 

@@ -1,0 +1,900 @@
+{
+  "schemaVersion": 1,
+  "kind": "aqua-recurring-frame-demo",
+  "network": "local",
+  "gateway": "http://127.0.0.1:14337/rpc",
+  "chainId": 1337,
+  "genesisHash": "0x021b2fad378f1f4213be69607bc3ec25a8a3219311b3f246031c87e35944be5f",
+  "startedAt": "2026-11-06T10:56:44.336Z",
+  "status": "verified",
+  "steps": {
+    "Aqua": {
+      "hash": "0x47a361a642f1c613deacb75e79b9a26fb34b84ed79b495d9753c78e56f3a053b",
+      "intent": "0x75f4d456451abdea594591bb7a43fc10c8388018789609bad74a09995c622aef",
+      "to": null,
+      "type": "0x0",
+      "status": "included",
+      "address": "0x41C7c19a3f7501a8328e6dE00a1488B698bDf630",
+      "receipt": {
+        "blockHash": "0xf47798730fb2bbc685b586e4bc4fdff1f5d7a49ba01d7e6a0f83302de5bcb4a6",
+        "blockNumber": "0xa0d",
+        "contractAddress": "0x41c7c19a3f7501a8328e6de00a1488b698bdf630",
+        "cumulativeGasUsed": "0x413ba5",
+        "effectiveGasPrice": "0x1e8480",
+        "from": "0x9b119e64db1a4c7485da57088d8c253e6791e8e8",
+        "gasUsed": "0x413ba5",
+        "logs": [],
+        "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "status": "0x1",
+        "to": null,
+        "transactionHash": "0x47a361a642f1c613deacb75e79b9a26fb34b84ed79b495d9753c78e56f3a053b",
+        "transactionIndex": "0x0",
+        "type": "0x0"
+      },
+      "codeHash": "0xe55cd0f174aa9317e4d528feda01d104567039659bd07fc392fde3a087e6daca"
+    },
+    "FramePayCreate2Factory": {
+      "hash": "0x343f921d2cd17a08d0f3ac3e658784c7e38165684431a62309d916d59c32724b",
+      "intent": "0x702fd026f69da94a877882237cf65a2c515de1642abe6c6034381e68a22c501f",
+      "to": null,
+      "type": "0x0",
+      "status": "included",
+      "address": "0xA81Be6cC32f3Ded386b6A2B8830777b092766573",
+      "receipt": {
+        "blockHash": "0x3dd55427d69c1c92ce5c23e630f728e6e1c8681f81d3db421567fb96c3102864",
+        "blockNumber": "0xa0e",
+        "contractAddress": "0xa81be6cc32f3ded386b6a2b8830777b092766573",
+        "cumulativeGasUsed": "0xceb4f",
+        "effectiveGasPrice": "0x1e8480",
+        "from": "0x9b119e64db1a4c7485da57088d8c253e6791e8e8",
+        "gasUsed": "0xceb4f",
+        "logs": [],
+        "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "status": "0x1",
+        "to": null,
+        "transactionHash": "0x343f921d2cd17a08d0f3ac3e658784c7e38165684431a62309d916d59c32724b",
+        "transactionIndex": "0x0",
+        "type": "0x0"
+      },
+      "codeHash": "0x5ffd135621c8d08e77e4a9c1790b92f7d398dd355af540f955d7c66cf0357f12"
+    },
+    "FramePayTransferGuard": {
+      "hash": "0x7127aa17c8cc77ef393c2aa0a176f6edd7b4e9596d63ea8f5082da46d704f6d4",
+      "intent": "0xa81adf476033af3c766249468707214e962406f42b43b790ea2618be854b8e03",
+      "to": null,
+      "type": "0x0",
+      "status": "included",
+      "address": "0x0e07E8Ef41E798A1a89793fe78fCDE95C8075412",
+      "receipt": {
+        "blockHash": "0xf85b8a229cc8130a88f4458a4430c644287c3ca2164698935527fa5efa1fe8c0",
+        "blockNumber": "0xa0f",
+        "contractAddress": "0x0e07e8ef41e798a1a89793fe78fcde95c8075412",
+        "cumulativeGasUsed": "0x1a5863",
+        "effectiveGasPrice": "0x1e8480",
+        "from": "0x9b119e64db1a4c7485da57088d8c253e6791e8e8",
+        "gasUsed": "0x1a5863",
+        "logs": [],
+        "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "status": "0x1",
+        "to": null,
+        "transactionHash": "0x7127aa17c8cc77ef393c2aa0a176f6edd7b4e9596d63ea8f5082da46d704f6d4",
+        "transactionIndex": "0x0",
+        "type": "0x0"
+      },
+      "codeHash": "0xd73b6f3608f1dfcad8db6b88d565d91a47a47af2a52eb7ef6723055a8ec4aeeb"
+    },
+    "AppUSD": {
+      "hash": "0xecf15dfabf7db3d50db32f9b3e9d59a3115dc613246c9cc672ebbc78af06c460",
+      "intent": "0x35e0aaebcb9876c672bf13457ea50a50e54c9ee5048e30380fba1db45038b3fe",
+      "to": null,
+      "type": "0x0",
+      "status": "included",
+      "address": "0xA7503e57d41b82522e8221E53C810B770B1e3F58",
+      "receipt": {
+        "blockHash": "0xf972bb453c74d4c3334955545f5a16e8572b5460b6b1df3d6229b8f69de7f014",
+        "blockNumber": "0xa10",
+        "contractAddress": "0xa7503e57d41b82522e8221e53c810b770b1e3f58",
+        "cumulativeGasUsed": "0x361494",
+        "effectiveGasPrice": "0x1e8480",
+        "from": "0x9b119e64db1a4c7485da57088d8c253e6791e8e8",
+        "gasUsed": "0x361494",
+        "logs": [
+          {
+            "address": "0xa7503e57d41b82522e8221e53c810b770b1e3f58",
+            "blockHash": "0xf972bb453c74d4c3334955545f5a16e8572b5460b6b1df3d6229b8f69de7f014",
+            "blockNumber": "0xa10",
+            "blockTimestamp": "0x6aedb287",
+            "data": "0x000000000000000000000000000000000000000000000000000009184e72a000",
+            "logIndex": "0x0",
+            "removed": false,
+            "topics": [
+              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+              "0x0000000000000000000000000000000000000000000000000000000000000000",
+              "0x000000000000000000000000a7503e57d41b82522e8221e53c810b770b1e3f58"
+            ],
+            "transactionHash": "0xecf15dfabf7db3d50db32f9b3e9d59a3115dc613246c9cc672ebbc78af06c460",
+            "transactionIndex": "0x0"
+          }
+        ],
+        "logsBloom": "0x00000000100000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080000000000008000000000000000000000000000000000000000000000000020000004000000000000800000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000202000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000400000000000000000000000",
+        "status": "0x1",
+        "to": null,
+        "transactionHash": "0xecf15dfabf7db3d50db32f9b3e9d59a3115dc613246c9cc672ebbc78af06c460",
+        "transactionIndex": "0x0",
+        "type": "0x0"
+      },
+      "codeHash": "0xd265b7d653aa26487695570187e31097e50b6b8cd1dd6be79c7ab09e8be1bd99"
+    },
+    "AppAsset": {
+      "hash": "0xee7f154a0f6f7abf8c6f71cab7b54293dc57f2ab474b36b6d45e2e6363c13e19",
+      "intent": "0x79909946591098447fc0207d90dfb63f83a0e8ea437226abbb8ff424a178a0d0",
+      "to": null,
+      "type": "0x0",
+      "status": "included",
+      "address": "0x3698754857962F84275C4b323769687fc0FBf944",
+      "receipt": {
+        "blockHash": "0xf2b8f5c20e70ce8bf555623d7cd72f272d582edbd953cbc6ddaee150a5123cc7",
+        "blockNumber": "0xa11",
+        "contractAddress": "0x3698754857962f84275c4b323769687fc0fbf944",
+        "cumulativeGasUsed": "0x3614d0",
+        "effectiveGasPrice": "0x1e8480",
+        "from": "0x9b119e64db1a4c7485da57088d8c253e6791e8e8",
+        "gasUsed": "0x3614d0",
+        "logs": [
+          {
+            "address": "0x3698754857962f84275c4b323769687fc0fbf944",
+            "blockHash": "0xf2b8f5c20e70ce8bf555623d7cd72f272d582edbd953cbc6ddaee150a5123cc7",
+            "blockNumber": "0xa11",
+            "blockTimestamp": "0x6aedb28d",
+            "data": "0x00000000000000000000000000000000000000000000d3c21bcecceda1000000",
+            "logIndex": "0x0",
+            "removed": false,
+            "topics": [
+              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+              "0x0000000000000000000000000000000000000000000000000000000000000000",
+              "0x0000000000000000000000003698754857962f84275c4b323769687fc0fbf944"
+            ],
+            "transactionHash": "0xee7f154a0f6f7abf8c6f71cab7b54293dc57f2ab474b36b6d45e2e6363c13e19",
+            "transactionIndex": "0x0"
+          }
+        ],
+        "logsBloom": "0x00000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008200000000000000000000000000000000000000000000000020000000000000000000800000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000048000000000000000000000000000000000000000000000000002000041000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000000",
+        "status": "0x1",
+        "to": null,
+        "transactionHash": "0xee7f154a0f6f7abf8c6f71cab7b54293dc57f2ab474b36b6d45e2e6363c13e19",
+        "transactionIndex": "0x0",
+        "type": "0x0"
+      },
+      "codeHash": "0xf97536192545dd98ed4da5139859798c38e42ac4009ab482813ab88585942c75"
+    },
+    "deployRouter": {
+      "hash": "0x6ac4093a504a11619f4287286e53d236c418b85b4cfc7b4cf72b324dc13bf550",
+      "intent": "0xe20b9f9989698c15ef282a54a025c4943bd9eeccc2217bb660b7f63c5c07f6e8",
+      "type": "0x06",
+      "sender": "0x9b119E64Db1A4c7485da57088d8c253E6791E8e8",
+      "payer": "0x9b119E64Db1A4c7485da57088d8c253E6791E8e8",
+      "frameCount": 2,
+      "route": "canonical",
+      "status": "verified",
+      "receipt": {
+        "transactionHash": "0x6ac4093a504a11619f4287286e53d236c418b85b4cfc7b4cf72b324dc13bf550",
+        "blockHash": "0x731ecfe431ea1b2e25b71f2be55d5102c62a3c58f21f5cce06e5d45e4c55cc79",
+        "blockNumber": "0xa12",
+        "status": "0x1",
+        "frameReceipts": [
+          {
+            "status": "0x1"
+          },
+          {
+            "status": "0x1"
+          }
+        ]
+      }
+    },
+    "seedTokens": {
+      "hash": "0x837abebba6ca78668285dbc2a3bc56348007c9671943843d0b75e11a6f7a58cf",
+      "intent": "0x17fe20a946fad33124301fc95182d8fa3d280efee3a9f191637003c9588ea40f",
+      "type": "0x06",
+      "sender": "0x9b119E64Db1A4c7485da57088d8c253E6791E8e8",
+      "payer": "0xb460FC3D73Cd7aD58f5E5E8139adf3881ff231C1",
+      "frameCount": 3,
+      "route": "standard-alt-mempool",
+      "status": "verified",
+      "receipt": {
+        "transactionHash": "0x837abebba6ca78668285dbc2a3bc56348007c9671943843d0b75e11a6f7a58cf",
+        "blockHash": "0x3c4c309346cc4a8ce4d46328dfe9915960e629e939f69851b6cccdaa20efb3a8",
+        "blockNumber": "0xa14",
+        "status": "0x1",
+        "frameReceipts": [
+          {
+            "status": "0x1"
+          },
+          {
+            "status": "0x1"
+          },
+          {
+            "status": "0x1"
+          }
+        ]
+      },
+      "admission": {
+        "hash": "0x837abebba6ca78668285dbc2a3bc56348007c9671943843d0b75e11a6f7a58cf",
+        "entry": {
+          "txHash": "0x837abebba6ca78668285dbc2a3bc56348007c9671943843d0b75e11a6f7a58cf",
+          "sender": "0x9b119E64Db1A4c7485da57088d8c253E6791E8e8",
+          "payer": "0xb460FC3D73Cd7aD58f5E5E8139adf3881ff231C1",
+          "nonce": "0x6",
+          "nonceKeys": [
+            "0x0"
+          ],
+          "status": "New",
+          "frames": 3,
+          "maxFeePerGas": "0x1e8480",
+          "submittedTime": 1793962645109,
+          "lastUpdatedTime": 1793962645125,
+          "source": "rpc",
+          "tx": {
+            "chainId": "0x539",
+            "nonceKeys": [
+              "0x0"
+            ],
+            "nonceSeq": "0x6",
+            "sender": "0x9b119E64Db1A4c7485da57088d8c253E6791E8e8",
+            "frames": [
+              {
+                "mode": 1,
+                "flags": 2,
+                "target": null,
+                "limits": {
+                  "execution": "0x7530",
+                  "state": "0x0"
+                },
+                "value": "0x0",
+                "data": "0x"
+              },
+              {
+                "mode": 1,
+                "flags": 1,
+                "target": "0xb460FC3D73Cd7aD58f5E5E8139adf3881ff231C1",
+                "limits": {
+                  "execution": "0xc350",
+                  "state": "0x0"
+                },
+                "value": "0x0",
+                "data": "0x"
+              },
+              {
+                "mode": 2,
+                "flags": 0,
+                "target": "0xA7503e57d41b82522e8221E53C810B770B1e3F58",
+                "limits": {
+                  "execution": "0x927c0",
+                  "state": "0x16e360"
+                },
+                "value": "0x0",
+                "data": "0x4e71d92d"
+              }
+            ],
+            "signatures": [
+              {
+                "scheme": 1,
+                "signer": "0x",
+                "msg": "0x",
+                "signature": "0x003a0fc2e37f9ac8e3921c19b1cf44ad478e7af25c03930eaad033ede5b2dd8dea2362ca7b66af5b12684d2b0b96d16019395f72fd3118168c60538d942f471afe"
+              }
+            ],
+            "fees": {
+              "maxPriorityFeePerGas": "0xf4240",
+              "maxFeePerGas": "0x1e8480",
+              "maxFeePerBlobGas": "0x0"
+            },
+            "blobVersionedHashes": [],
+            "recentRootReferences": []
+          }
+        },
+        "admission": {
+          "id": 13,
+          "txHash": "0x837abebba6ca78668285dbc2a3bc56348007c9671943843d0b75e11a6f7a58cf",
+          "sender": "0x9b119E64Db1A4c7485da57088d8c253E6791E8e8",
+          "nonce": "0x6",
+          "nonceKeys": [
+            "0x0"
+          ],
+          "at": 1793962645068,
+          "source": "rpc",
+          "outcome": "accepted",
+          "checks": [
+            {
+              "rule": "gas-limit",
+              "verdict": "pass"
+            },
+            {
+              "rule": "recent-root",
+              "verdict": "pass"
+            },
+            {
+              "rule": "prefix",
+              "verdict": "pass"
+            },
+            {
+              "rule": "structure",
+              "verdict": "pass"
+            },
+            {
+              "rule": "signature",
+              "verdict": "pass"
+            },
+            {
+              "rule": "simulation",
+              "verdict": "pass"
+            },
+            {
+              "rule": "trace-alignment",
+              "verdict": "pass"
+            },
+            {
+              "rule": "OP-061",
+              "verdict": "pass"
+            },
+            {
+              "rule": "execution",
+              "verdict": "pass"
+            },
+            {
+              "rule": "trace-alignment",
+              "frameIndex": 0,
+              "entity": "sender",
+              "verdict": "pass"
+            },
+            {
+              "rule": "out-of-gas",
+              "frameIndex": 0,
+              "entity": "sender",
+              "verdict": "pass"
+            },
+            {
+              "rule": "OP-011",
+              "frameIndex": 0,
+              "entity": "sender",
+              "verdict": "pass"
+            },
+            {
+              "rule": "create",
+              "frameIndex": 0,
+              "entity": "sender",
+              "verdict": "pass"
+            },
+            {
+              "rule": "storage",
+              "frameIndex": 0,
+              "entity": "sender",
+              "verdict": "pass"
+            },
+            {
+              "rule": "COD-010",
+              "frameIndex": 0,
+              "entity": "sender",
+              "verdict": "pass"
+            },
+            {
+              "rule": "entrypoint-access",
+              "frameIndex": 0,
+              "entity": "sender",
+              "verdict": "pass"
+            },
+            {
+              "rule": "trace-alignment",
+              "frameIndex": 1,
+              "entity": "payer",
+              "verdict": "pass"
+            },
+            {
+              "rule": "out-of-gas",
+              "frameIndex": 1,
+              "entity": "payer",
+              "verdict": "pass"
+            },
+            {
+              "rule": "OP-011",
+              "frameIndex": 1,
+              "entity": "payer",
+              "verdict": "pass"
+            },
+            {
+              "rule": "create",
+              "frameIndex": 1,
+              "entity": "payer",
+              "verdict": "pass"
+            },
+            {
+              "rule": "storage",
+              "frameIndex": 1,
+              "entity": "payer",
+              "verdict": "pass"
+            },
+            {
+              "rule": "COD-010",
+              "frameIndex": 1,
+              "entity": "payer",
+              "verdict": "pass"
+            },
+            {
+              "rule": "entrypoint-access",
+              "frameIndex": 1,
+              "entity": "payer",
+              "verdict": "pass"
+            },
+            {
+              "rule": "mempool",
+              "verdict": "pass"
+            }
+          ],
+          "frames": [
+            {
+              "mode": 1,
+              "flags": 2,
+              "target": null,
+              "limits": {
+                "execution": "0x7530",
+                "state": "0x0"
+              },
+              "value": "0x0",
+              "data": "0x"
+            },
+            {
+              "mode": 1,
+              "flags": 1,
+              "target": "0xb460FC3D73Cd7aD58f5E5E8139adf3881ff231C1",
+              "limits": {
+                "execution": "0xc350",
+                "state": "0x0"
+              },
+              "value": "0x0",
+              "data": "0x"
+            },
+            {
+              "mode": 2,
+              "flags": 0,
+              "target": "0xA7503e57d41b82522e8221E53C810B770B1e3F58",
+              "limits": {
+                "execution": "0x927c0",
+                "state": "0x16e360"
+              },
+              "value": "0x0",
+              "data": "0x4e71d92d"
+            }
+          ],
+          "frameStatuses": [
+            "success",
+            "success",
+            "success"
+          ]
+        },
+        "events": [
+          {
+            "seq": 26,
+            "txHash": "0x837abebba6ca78668285dbc2a3bc56348007c9671943843d0b75e11a6f7a58cf",
+            "at": 1793962645127,
+            "kind": "admitted",
+            "status": "New"
+          }
+        ]
+      }
+    },
+    "seedPosition": {
+      "hash": "0xb131208e20a01def6c05a0ab46672f0ca474a39f875ecf7453abb97aaeb30a66",
+      "intent": "0x671b536d62d8afdd1a93618f5e88a37ad907821df225b7bb94eae2a87d8f474d",
+      "type": "0x06",
+      "sender": "0x9b119E64Db1A4c7485da57088d8c253E6791E8e8",
+      "payer": "0xb460FC3D73Cd7aD58f5E5E8139adf3881ff231C1",
+      "frameCount": 4,
+      "route": "standard-alt-mempool",
+      "status": "verified",
+      "receipt": {
+        "transactionHash": "0xb131208e20a01def6c05a0ab46672f0ca474a39f875ecf7453abb97aaeb30a66",
+        "blockHash": "0xc0fb9a92295405c7e301c9c22084809dd3bec2cddba87599ac912dbcb597e014",
+        "blockNumber": "0xa15",
+        "status": "0x1",
+        "frameReceipts": [
+          {
+            "status": "0x1"
+          },
+          {
+            "status": "0x1"
+          },
+          {
+            "status": "0x1"
+          },
+          {
+            "status": "0x1"
+          }
+        ]
+      },
+      "admission": {
+        "hash": "0xb131208e20a01def6c05a0ab46672f0ca474a39f875ecf7453abb97aaeb30a66",
+        "entry": {
+          "txHash": "0xb131208e20a01def6c05a0ab46672f0ca474a39f875ecf7453abb97aaeb30a66",
+          "sender": "0x9b119E64Db1A4c7485da57088d8c253E6791E8e8",
+          "payer": "0xb460FC3D73Cd7aD58f5E5E8139adf3881ff231C1",
+          "nonce": "0x7",
+          "nonceKeys": [
+            "0x0"
+          ],
+          "status": "New",
+          "frames": 4,
+          "maxFeePerGas": "0x1e8480",
+          "submittedTime": 1793962655341,
+          "lastUpdatedTime": 1793962655352,
+          "source": "rpc",
+          "tx": {
+            "chainId": "0x539",
+            "nonceKeys": [
+              "0x0"
+            ],
+            "nonceSeq": "0x7",
+            "sender": "0x9b119E64Db1A4c7485da57088d8c253E6791E8e8",
+            "frames": [
+              {
+                "mode": 1,
+                "flags": 2,
+                "target": null,
+                "limits": {
+                  "execution": "0x7530",
+                  "state": "0x0"
+                },
+                "value": "0x0",
+                "data": "0x"
+              },
+              {
+                "mode": 1,
+                "flags": 1,
+                "target": "0xb460FC3D73Cd7aD58f5E5E8139adf3881ff231C1",
+                "limits": {
+                  "execution": "0xc350",
+                  "state": "0x0"
+                },
+                "value": "0x0",
+                "data": "0x"
+              },
+              {
+                "mode": 2,
+                "flags": 0,
+                "target": "0xA7503e57d41b82522e8221E53C810B770B1e3F58",
+                "limits": {
+                  "execution": "0x927c0",
+                  "state": "0x16e360"
+                },
+                "value": "0x0",
+                "data": "0x095ea7b300000000000000000000000041c7c19a3f7501a8328e6de00a1488b698bdf630000000000000000000000000000000000000000000000000000000003b9aca00"
+              },
+              {
+                "mode": 2,
+                "flags": 0,
+                "target": "0x41C7c19a3f7501a8328e6dE00a1488B698bDf630",
+                "limits": {
+                  "execution": "0x927c0",
+                  "state": "0x16e360"
+                },
+                "value": "0x0",
+                "data": "0xf50b870f000000000000000000000000093febe78566e51d2cb7a0f80ae9de127d59f7e40000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000026000000000000000000000000000000000000000000000000000000000000002c000000000000000000000000000000000000000000000000000000000000001c000000000000000000000000000000000000000000000000000000000000000200000000000000000000000009b119e64db1a4c7485da57088d8c253e6791e8e840000000002800280028002800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000010a3698754857962f84275c4b323769687fc0fbf944a7503e57d41b82522e8221e53c810b770b1e3f58e0e00000000000000000000000003698754857962f84275c4b323769687fc0fbf944000000000000000000000000000000006b153f9f0000003c000000006aedb29f0000000000000000000000000000000000000000000000000000000005f5e100000000000000000000000000000000000000000000000000000000003b9aca000000000000000000000000000000000000000000000000000de0b6b3a76400000000000000000000000000000000000000000000000000000000000000989680f3f155e264ff15b5097e109d2cd1f87de3fc6dc4430769cb1f2f63b2120b5c940000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020000000000000000000000003698754857962f84275c4b323769687fc0fbf944000000000000000000000000a7503e57d41b82522e8221e53c810b770b1e3f5800000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003b9aca00"
+              }
+            ],
+            "signatures": [
+              {
+                "scheme": 1,
+                "signer": "0x",
+                "msg": "0x",
+                "signature": "0x01dbe72351e58740980c8ede2e76a76dfd4d8f3425fdfd72cae787d621866cacd467d6a27d0a695a71df4498667b7b8f97b1298a837837ed37aae483fe14c3fb7f"
+              }
+            ],
+            "fees": {
+              "maxPriorityFeePerGas": "0xf4240",
+              "maxFeePerGas": "0x1e8480",
+              "maxFeePerBlobGas": "0x0"
+            },
+            "blobVersionedHashes": [],
+            "recentRootReferences": []
+          }
+        },
+        "admission": {
+          "id": 14,
+          "txHash": "0xb131208e20a01def6c05a0ab46672f0ca474a39f875ecf7453abb97aaeb30a66",
+          "sender": "0x9b119E64Db1A4c7485da57088d8c253E6791E8e8",
+          "nonce": "0x7",
+          "nonceKeys": [
+            "0x0"
+          ],
+          "at": 1793962655313,
+          "source": "rpc",
+          "outcome": "accepted",
+          "checks": [
+            {
+              "rule": "gas-limit",
+              "verdict": "pass"
+            },
+            {
+              "rule": "recent-root",
+              "verdict": "pass"
+            },
+            {
+              "rule": "prefix",
+              "verdict": "pass"
+            },
+            {
+              "rule": "structure",
+              "verdict": "pass"
+            },
+            {
+              "rule": "signature",
+              "verdict": "pass"
+            },
+            {
+              "rule": "simulation",
+              "verdict": "pass"
+            },
+            {
+              "rule": "trace-alignment",
+              "verdict": "pass"
+            },
+            {
+              "rule": "OP-061",
+              "verdict": "pass"
+            },
+            {
+              "rule": "execution",
+              "verdict": "pass"
+            },
+            {
+              "rule": "trace-alignment",
+              "frameIndex": 0,
+              "entity": "sender",
+              "verdict": "pass"
+            },
+            {
+              "rule": "out-of-gas",
+              "frameIndex": 0,
+              "entity": "sender",
+              "verdict": "pass"
+            },
+            {
+              "rule": "OP-011",
+              "frameIndex": 0,
+              "entity": "sender",
+              "verdict": "pass"
+            },
+            {
+              "rule": "create",
+              "frameIndex": 0,
+              "entity": "sender",
+              "verdict": "pass"
+            },
+            {
+              "rule": "storage",
+              "frameIndex": 0,
+              "entity": "sender",
+              "verdict": "pass"
+            },
+            {
+              "rule": "COD-010",
+              "frameIndex": 0,
+              "entity": "sender",
+              "verdict": "pass"
+            },
+            {
+              "rule": "entrypoint-access",
+              "frameIndex": 0,
+              "entity": "sender",
+              "verdict": "pass"
+            },
+            {
+              "rule": "trace-alignment",
+              "frameIndex": 1,
+              "entity": "payer",
+              "verdict": "pass"
+            },
+            {
+              "rule": "out-of-gas",
+              "frameIndex": 1,
+              "entity": "payer",
+              "verdict": "pass"
+            },
+            {
+              "rule": "OP-011",
+              "frameIndex": 1,
+              "entity": "payer",
+              "verdict": "pass"
+            },
+            {
+              "rule": "create",
+              "frameIndex": 1,
+              "entity": "payer",
+              "verdict": "pass"
+            },
+            {
+              "rule": "storage",
+              "frameIndex": 1,
+              "entity": "payer",
+              "verdict": "pass"
+            },
+            {
+              "rule": "COD-010",
+              "frameIndex": 1,
+              "entity": "payer",
+              "verdict": "pass"
+            },
+            {
+              "rule": "entrypoint-access",
+              "frameIndex": 1,
+              "entity": "payer",
+              "verdict": "pass"
+            },
+            {
+              "rule": "mempool",
+              "verdict": "pass"
+            }
+          ],
+          "frames": [
+            {
+              "mode": 1,
+              "flags": 2,
+              "target": null,
+              "limits": {
+                "execution": "0x7530",
+                "state": "0x0"
+              },
+              "value": "0x0",
+              "data": "0x"
+            },
+            {
+              "mode": 1,
+              "flags": 1,
+              "target": "0xb460FC3D73Cd7aD58f5E5E8139adf3881ff231C1",
+              "limits": {
+                "execution": "0xc350",
+                "state": "0x0"
+              },
+              "value": "0x0",
+              "data": "0x"
+            },
+            {
+              "mode": 2,
+              "flags": 0,
+              "target": "0xA7503e57d41b82522e8221E53C810B770B1e3F58",
+              "limits": {
+                "execution": "0x927c0",
+                "state": "0x16e360"
+              },
+              "value": "0x0",
+              "data": "0x095ea7b300000000000000000000000041c7c19a3f7501a8328e6de00a1488b698bdf630000000000000000000000000000000000000000000000000000000003b9aca00"
+            },
+            {
+              "mode": 2,
+              "flags": 0,
+              "target": "0x41C7c19a3f7501a8328e6dE00a1488B698bDf630",
+              "limits": {
+                "execution": "0x927c0",
+                "state": "0x16e360"
+              },
+              "value": "0x0",
+              "data": "0xf50b870f000000000000000000000000093febe78566e51d2cb7a0f80ae9de127d59f7e40000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000026000000000000000000000000000000000000000000000000000000000000002c000000000000000000000000000000000000000000000000000000000000001c000000000000000000000000000000000000000000000000000000000000000200000000000000000000000009b119e64db1a4c7485da57088d8c253e6791e8e840000000002800280028002800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000010a3698754857962f84275c4b323769687fc0fbf944a7503e57d41b82522e8221e53c810b770b1e3f58e0e00000000000000000000000003698754857962f84275c4b323769687fc0fbf944000000000000000000000000000000006b153f9f0000003c000000006aedb29f0000000000000000000000000000000000000000000000000000000005f5e100000000000000000000000000000000000000000000000000000000003b9aca000000000000000000000000000000000000000000000000000de0b6b3a76400000000000000000000000000000000000000000000000000000000000000989680f3f155e264ff15b5097e109d2cd1f87de3fc6dc4430769cb1f2f63b2120b5c940000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020000000000000000000000003698754857962f84275c4b323769687fc0fbf944000000000000000000000000a7503e57d41b82522e8221e53c810b770b1e3f5800000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003b9aca00"
+            }
+          ],
+          "frameStatuses": [
+            "success",
+            "success",
+            "success",
+            "success"
+          ]
+        },
+        "events": [
+          {
+            "seq": 27,
+            "txHash": "0xb131208e20a01def6c05a0ab46672f0ca474a39f875ecf7453abb97aaeb30a66",
+            "at": 1793962655353,
+            "kind": "admitted",
+            "status": "New"
+          }
+        ]
+      }
+    }
+  },
+  "runId": "defi-app",
+  "maker": "0x9b119E64Db1A4c7485da57088d8c253E6791E8e8",
+  "taker": "0xc1c17924Aa5F29F2aFE16434D96acd0ECD6aF549",
+  "build": {
+    "compiler": "0.8.30",
+    "evmVersion": "prague",
+    "viaIR": true,
+    "optimizerRuns": 600,
+    "sourceTreeSha256": "c67ec818f2c87691c51c9bf417a09c70552d007d2d0841db5e97afc6f029c201",
+    "pins": {
+      "compiler": "0.8.30",
+      "sources": [
+        {
+          "name": "@1inch/swap-vm",
+          "repository": "https://github.com/1inch/swap-vm.git",
+          "commit": "f9f4acfed0ffa321c2108efe05ecf7a5e0bd8abc",
+          "path": "vendor/swap-vm/contracts",
+          "solidityTreeSha256": "e59427a5a365a37ff1587f53af043a9b05318195f29d25d0ce6830225f7264a8"
+        },
+        {
+          "name": "@1inch/aqua",
+          "version": "1.0.2-rc.2",
+          "path": "vendor/framepay-deps/node_modules/@1inch/aqua/contracts",
+          "solidityTreeSha256": "9a4dac5cbf284b1e499dd3bfc4ca45ad8300198dcfabe34daf732aa4d3031eea"
+        },
+        {
+          "name": "@1inch/solidity-utils",
+          "version": "7.0.3",
+          "path": "vendor/framepay-deps/node_modules/@1inch/solidity-utils/contracts",
+          "solidityTreeSha256": "98f022e521673fcf89e6e35c52256ccb849990602c891c9f4e5ef8438154c820"
+        },
+        {
+          "name": "@openzeppelin/contracts",
+          "version": "5.6.1",
+          "path": "vendor/framepay-deps/node_modules/@openzeppelin/contracts",
+          "solidityTreeSha256": "571d8c06afa71a4df40e0c9a4861b16a688500b1509db9a87433a5fe4f59a44e"
+        }
+      ]
+    },
+    "artifacts": {
+      "Aqua": "1ed04cdd16afc854133152f56c2361fbfc61567ba93b9414c7c9773f80b42af4",
+      "FramePayRecurringSwapVM": "b322a72c453215dc101614bc9c619024b28af683df7f9ebc5fefa22b276d6fca",
+      "DemoToken": "9f0dcdec71389ef2541687b846c8605d46a1ea32bc350af97329f981042e211a",
+      "FramePayCreate2Factory": "7de03e7989d4402052825282959ea552cfce13b265f8f60d73102b3ef0d5562c",
+      "AppTestToken": "ed110cf9796f3787973154457b63397c6fe7776a8704947d7594a16191761564",
+      "FramePayTransferGuard": "6fe6b840436d48032c9006c7857de548aa03f95437d4e0ce0d441652f9d8fe14"
+    }
+  },
+  "faucet": {
+    "status": "included",
+    "hash": "0xe97d7c1426823719a7d242e12d8b99194de67918bc88d6efb2163e4a15c7948e"
+  },
+  "policy": {
+    "buyToken": "0x3698754857962F84275C4b323769687fc0FBf944",
+    "schedule": "142337724172098100710977526347596673695",
+    "periodBudget": "100000000",
+    "totalBudget": "1000000000",
+    "buyUnits": "1000000000000000000",
+    "spendUnits": "10000000",
+    "salt": "0xf3f155e264ff15b5097e109d2cd1f87de3fc6dc4430769cb1f2f63b2120b5c94"
+  },
+  "app": {
+    "network": "local",
+    "genesisHash": "0x021b2fad378f1f4213be69607bc3ec25a8a3219311b3f246031c87e35944be5f",
+    "contracts": {
+      "aqua": "0x41C7c19a3f7501a8328e6dE00a1488B698bDf630",
+      "router": "0x093FeBe78566e51d2Cb7A0F80aE9de127d59f7e4",
+      "guard": "0x0e07E8Ef41E798A1a89793fe78fCDE95C8075412",
+      "usd": "0xA7503e57d41b82522e8221E53C810B770B1e3F58",
+      "asset": "0x3698754857962F84275C4b323769687fc0FBf944"
+    },
+    "codeHashes": {
+      "aqua": "0xe55cd0f174aa9317e4d528feda01d104567039659bd07fc392fde3a087e6daca",
+      "router": "0x191b64e4863d33475274ae5bebfb3cedf55c29a3c4c78252f34b860d0223dff0",
+      "guard": "0xd73b6f3608f1dfcad8db6b88d565d91a47a47af2a52eb7ef6723055a8ec4aeeb",
+      "usd": "0xd265b7d653aa26487695570187e31097e50b6b8cd1dd6be79c7ab09e8be1bd99",
+      "asset": "0xf97536192545dd98ed4da5139859798c38e42ac4009ab482813ab88585942c75"
+    },
+    "seedPosition": {
+      "name": "Community buy pool",
+      "order": {
+        "maker": "0x9b119E64Db1A4c7485da57088d8c253E6791E8e8",
+        "traits": "28948022309345504152553859025372987423956659195481894094225317213215909740544",
+        "data": "0x3698754857962f84275c4b323769687fc0fbf944a7503e57d41b82522e8221e53c810b770b1e3f58e0e00000000000000000000000003698754857962f84275c4b323769687fc0fbf944000000000000000000000000000000006b153f9f0000003c000000006aedb29f0000000000000000000000000000000000000000000000000000000005f5e100000000000000000000000000000000000000000000000000000000003b9aca000000000000000000000000000000000000000000000000000de0b6b3a76400000000000000000000000000000000000000000000000000000000000000989680f3f155e264ff15b5097e109d2cd1f87de3fc6dc4430769cb1f2f63b2120b5c94"
+      },
+      "orderHash": "0xdb0b21099b0d3f4cc07fa520f60f7a88ef1779e83c25741c0841c690787d2282",
+      "policy": {
+        "buyToken": "0x3698754857962F84275C4b323769687fc0FBf944",
+        "schedule": "142337724172098100710977526347596673695",
+        "periodBudget": "100000000",
+        "totalBudget": "1000000000",
+        "buyUnits": "1000000000000000000",
+        "spendUnits": "10000000",
+        "salt": "0xf3f155e264ff15b5097e109d2cd1f87de3fc6dc4430769cb1f2f63b2120b5c94"
+      }
+    },
+    "deployment": "0x6ac4093a504a11619f4287286e53d236c418b85b4cfc7b4cf72b324dc13bf550",
+    "seededAt": "0xb131208e20a01def6c05a0ab46672f0ca474a39f875ecf7453abb97aaeb30a66"
+  }
+}

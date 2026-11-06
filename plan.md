@@ -4,9 +4,17 @@ This document records how we intend to build the project, why we choose each com
 
 ## Current status
 
-**The shared frame/Aqua execution environment is proven locally; runtime image pinning remains open.** FramePay includes typed prepare/sign/submit/receipt/admission actions, a Next.js documentation site and local/public-devnet playground, a bounded test paymaster, and a custom recurring-buy SwapVM using official Aqua settlement. Four local sponsored swaps have successful type-0x06 receipts and verified token balance changes, with a zero-ETH taker. PQ vaults, production sponsorship policies and a swap UI remain planned; the SDK package is private and unpublished.
+**The shared frame/Aqua execution environment is proven locally; runtime image pinning remains open.** FramePay includes typed prepare/sign/submit/receipt/admission actions, a Next.js documentation site and local/public-devnet playground, a bounded test paymaster, and a custom recurring-buy SwapVM using official Aqua settlement. Four local sponsored swaps have successful type-0x06 receipts and verified token balance changes, with a zero-ETH taker. The local DeFi UI now supports sponsored swaps/transfers, editable assertions and recurring-position management. PQ vaults and production sponsorship policies remain planned; the SDK package is private and unpublished.
 
 ## Build record
+
+### November 6, 2026 — local DeFi app and editable assertions
+
+Implemented `/app` with sponsored Aqua swaps, guarded fpUSD/ETH transfers, editable browser rules, recurring-position creation/cancellation, import/share, explicit reviews and receipt inspection. Added claimable local tokens and a transfer guard with amount, deadline and recipient-balance assertions. The app verifies genesis and contract code before preparing transactions, retains public hashes before broadcast, and keeps its test account in tab session storage with explicit export/import.
+
+Browser verification executed five successful type-0x06 transactions: token claim, swap, transfer, position creation and cancellation. It rejected an over-limit transfer before submission and verified reload persistence and a 390-pixel layout. Receipt evidence confirms all frames succeeded and the account ended with 1,005 fpUSD, 99 fpASSET and zero ETH. Contract coverage includes rollback of token movement after a failed minimum-received assertion. See [the app guide](docs/defi-app.md) and [public evidence](evidence/defi/local-browser-1793963889398.json).
+
+The UI is local-only with test assets and SECP256K1 account signing. Saved preferences are not persistent smart-account permissions; recurring budget enforcement and per-call transfer/swap assertions run onchain.
 
 ### November 6, 2026 — project definition and planning
 
@@ -574,7 +582,7 @@ Run `npm run aqua:bootstrap`, `npm run aqua:test`, `npm run aqua:build`, then `n
 - [x] Demonstrate partial fills, period boundaries, expiry, and racing fills (sequential competing fills in tests).
 - [ ] Verify the rollback boundary of supported grouped application actions.
 - [x] Expose operation preparation, signing, submission, and observable status through the SDK.
-- [ ] Make the reference app use the SDK end to end.
+- [x] Make the reference app use the SDK end to end.
 
 ### Milestone 5 — Submission-ready demo
 
@@ -583,7 +591,7 @@ Run `npm run aqua:bootstrap`, `npm run aqua:test`, `npm run aqua:build`, then `n
 - [x] Show a strategy-limit violation rejected (contract tests and live read-only quotes).
 - [ ] Show who pays gas after an intentionally reverting action.
 - [x] Include reproducible scripts, contract addresses, version information, and explorer evidence.
-- [ ] Maintain real development commits throughout the build.
+- [x] Maintain real development commits throughout the build.
 
 ## Demo story
 

@@ -6,7 +6,7 @@ The maker keeps the spend token in their wallet, approves Aqua, and ships an imm
 
 ## Run the devnet demo
 
-Prerequisites: Node 20.12+, Foundry, and the configured frame-capable devnet. An ordinary Anvil fork does not implement EIP-8141. The scripts default to `https://undertaken-decide-gathered-epic.trycloudflare.com/rpc`, chain 1337, and its pinned genesis. See the [quantum wallet guide](quantum-wallet.md#reproduce) to build the ETHFalcon signer required by the contract tests.
+Prerequisites: Node 20.12+, Foundry, and the configured frame-capable devnet. An ordinary Anvil fork does not implement EIP-8141. The scripts default to `https://psi-essential-rebate-wrist.trycloudflare.com/rpc`, chain 1337, and its pinned genesis. See the [quantum wallet guide](quantum-wallet.md#reproduce) to build the ETHFalcon signer required by the contract tests.
 
 ```sh
 npm run aqua:bootstrap
@@ -36,7 +36,7 @@ The demo creates disposable maker and taker accounts, requests faucet ETH only f
 | Carryover | None |
 | Fills | 6 + 4 fpUSD in one period, 10 in the next, 5 in a later period |
 | Taker ETH | Zero throughout the swaps |
-| Gas payer | Recorded FramePay devnet test paymaster |
+| Gas payer | Recorded Framecraft devnet test paymaster |
 
 It waits for real devnet block timestamps between periods. No timestamp overrides, balance injection or replacement protocol contracts are used for the live demo. The Foundry tests separately use time manipulation to cover boundaries and failure cases.
 
@@ -97,7 +97,7 @@ For an individual fill:
 npm run transaction:inspect -- devnet 0x<fill-hash>
 ```
 
-Use the app’s Inspect receipt action or the transaction inspection command for FramePay devnet. Explorer admission history is temporary; the receipt and token-transfer logs are the durable on-chain evidence. Paymaster balance observations can include concurrent use of the open sponsor, so the evidence does not attribute its entire balance decrease exclusively to these swaps.
+Use the app’s Inspect receipt action or the transaction inspection command for Framecraft devnet. Explorer admission history is temporary; the receipt and token-transfer logs are the durable on-chain evidence. Paymaster balance observations can include concurrent use of the open sponsor, so the evidence does not attribute its entire balance decrease exclusively to these swaps.
 
 ## Official sources
 

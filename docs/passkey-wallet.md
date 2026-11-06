@@ -70,4 +70,4 @@ The deployer checks pinned OpenZeppelin 5.6.1 sources and build artifacts. It de
 
 ## Verification
 
-The legacy wallet remains covered by the Solidity and SDK tests. New browser demos use the PRF-derived ETHFalcon wallet on FramePay devnet. Generated reports and screenshots are stored under ignored `.framepay/`; historical run dumps are not tracked.
+The legacy wallet remains covered by the Solidity and SDK tests. New browser demos use the PRF-derived ETHFalcon wallet on Framecraft devnet. Generated reports and screenshots are stored under ignored `.framepay/`; historical run dumps are not tracked.

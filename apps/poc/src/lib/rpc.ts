@@ -7,7 +7,7 @@ import {
 
 export const chain = defineChain({
   id: 1337,
-  name: "FramePay devnet",
+  name: "Framecraft devnet",
   nativeCurrency: { name: "Test Ether", symbol: "ETH", decimals: 18 },
   rpcUrls: { default: { http: [frameNetworks.devnet.rpcUrl] } },
 });

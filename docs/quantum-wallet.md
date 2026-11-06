@@ -32,7 +32,7 @@ npm run poc:build
 
 `aqua:test` uses Foundry FFI to run the real compiled signer with a public test seed. `quantum:browser-check` needs Bun, Playwright (or the sibling workshop installation), and Chrome; it uses a disposable virtual authenticator, checks PRF regeneration across reloads, and never exports its private credential.
 
-With the configured FramePay devnet producing blocks:
+With the configured Framecraft devnet producing blocks:
 
 ```sh
 npm run quantum:deploy -- --network devnet
@@ -51,6 +51,6 @@ The real Chrome virtual authenticator test reproduced the same PRF-derived owner
 
 Deployment addresses and chain identity are recorded in `config/quantum.json`. Generated execution reports are kept outside git under `.framepay/`.
 
-The full app browser check on FramePay devnet confirmed six real sponsored frame transactions: wallet deployment, token claims, a swap, a transfer, recurring-position creation and cancellation. The last two used a replacement relay key for the same Falcon wallet. Public metadata export/import restored the wallet, missing user verification was rejected before broadcast, and the run reported no browser runtime errors.
+The full app browser check on Framecraft devnet confirmed six real sponsored frame transactions: wallet deployment, token claims, a swap, a transfer, recurring-position creation and cancellation. The last two used a replacement relay key for the same Falcon wallet. Public metadata export/import restored the wallet, missing user verification was rejected before broadcast, and the run reported no browser runtime errors.
 
 With the app running, reproduce this using `npm run passkey:demo`. Set `FRAMEPAY_APP_URL` to test a different app origin. This uses a disposable Chrome virtual authenticator; its test wallet cannot be controlled after the browser closes. Reports and screenshots remain in ignored `.framepay/passkey-browser/`.

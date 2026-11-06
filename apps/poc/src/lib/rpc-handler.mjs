@@ -137,7 +137,7 @@ export async function handleRpc(
       body.id,
       -32000,
       networkId === "devnet"
-        ? "FramePay devnet gateway unavailable. Check the configured Cloudflare tunnel."
+        ? "Framecraft devnet gateway unavailable. Check the configured Cloudflare tunnel."
         : networkId === "local"
         ? "Local gateway unavailable. Start the devnet and check port 14337."
         : "Public devnet gateway unavailable. Check connectivity and try again.",

@@ -71,7 +71,7 @@ export default function Quickstart() {
             <span className="inline-number">04</span>Try the browser playground
           </h2>
           <p>
-            Select FramePay devnet or Public alt-mempool devnet in the top bar.
+            Select Framecraft devnet or Public alt-mempool devnet in the top bar.
             Both use chain ID 1337 but have separate histories, accounts and
             deployments. Neither selection requires local Docker.
           </p>

@@ -1,0 +1,35 @@
+---
+import EvmlEditor from "../components/evml-editor";
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Write EIP-8141 frame transactions in EVMcrispr's EVML and send them to a Framecraft devnet." />
+    <title>EVML editor · FramePay</title>
+  </head>
+  <body class="evml-body">
+    <main class="evml-page">
+      <header class="evml-heading">
+        <a class="evml-logo" href="/" aria-label="Framecraft home">
+          <img src="/logo-on-light.svg" alt="Framecraft" width="149" height="24" />
+        </a>
+        <p class="evml-eyebrow">EVMCRISPR × FRAMEPAY</p>
+        <h1>Write frames in EVML.</h1>
+        <p>
+          Describe a frame transaction with EVMcrispr’s <code>frame:tx</code> and run it. The page signs with a disposable
+          test account and sends it to the selected FramePay network.
+          <a href="https://evmcrispr.com" target="_blank" rel="noreferrer">EVML docs ↗</a>
+        </p>
+      </header>
+      <!-- Monaco, wallet keys and RPC all live in the browser: render client-side only. -->
+      <EvmlEditor client:only="react">
+        <p class="evml-hint" slot="fallback">Loading editor…</p>
+      </EvmlEditor>
+    </main>
+  </body>
+</html>

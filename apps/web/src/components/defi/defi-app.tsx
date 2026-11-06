@@ -8,6 +8,7 @@ import { rpc, shortAddress } from "@/lib/rpc";
 import { aquaAbi, guardAbi, swapAbi, tokenAbi, unpackOrder, type Position } from "@/lib/defi-contracts";
 import { amount, assertSwap, assertTransfer, defaultRules, loadRules, validateRules } from "@/lib/defi-rules.mjs";
 import { useDefi, type Review } from "./use-defi";
+import { HowItWorks, reviewFlow, type Flow } from "./how-it-works";
 
 type Tab = "Swap" | "Transfer" | "Positions" | "Rules";
 type Rules = typeof defaultRules;
@@ -19,7 +20,7 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
 function Token({ asset = false, native = false }: { asset?: boolean; native?: boolean }) {
   return <span className={`defi-token ${asset ? "asset" : ""} ${native ? "native" : ""}`}>{native ? "Ξ" : asset ? "◈" : "$"}</span>;
 }
-function ReviewModal({ review, busy, confirm, cancel }: { review: Review; busy: boolean; confirm: () => void; cancel: () => void }) {
+function ReviewModal({ review, busy, confirm, cancel, explain }: { review: Review; busy: boolean; confirm: () => void; cancel: () => void; explain: () => void }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => { ref.current?.showModal(); }, []);
   return <dialog ref={ref} className="defi-review" aria-labelledby="review-title" onCancel={event => { event.preventDefault(); if (!busy) cancel(); }}>
@@ -28,6 +29,7 @@ function ReviewModal({ review, busy, confirm, cancel }: { review: Review; busy: 
     <dl>{review.details.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
     <div className="defi-review-checks">{review.assertions.map(item => <p key={item}><Icon name="check" size={15} />{item}</p>)}</div>
     <p className="defi-small">This sends a real transaction on the selected test network. Token approvals, when needed, are limited to the reviewed amount.</p>
+    <button className="defi-text-button" disabled={busy} onClick={explain}><Icon name="layers" size={15} />How it works · inspect frames</button>
     <button className="defi-primary" disabled={busy} onClick={confirm}>{busy ? "Signing…" : "Confirm & send"}<Icon name="arrow" size={17} /></button>
     <button className="defi-text-button" disabled={busy} onClick={cancel}>Back to editing</button>
   </dialog>;
@@ -36,6 +38,7 @@ function ReviewModal({ review, busy, confirm, cancel }: { review: Review; busy: 
 export function DefiApp() {
   const app = useDefi();
   const { deployment: config, account, publicClient, balances, locked, busy } = app;
+  const [explanation, setExplanation] = useState<{ flow: Flow; review?: Review } | null>(null);
   const [tab, setTab] = useState<Tab>("Swap");
   const [sponsored, setSponsored] = useState(true);
   const [rules, setRules] = useState<Rules>({ ...defaultRules });
@@ -221,7 +224,7 @@ export function DefiApp() {
       <div className="defi-header-tools"><Link href="/docs/quickstart" className="defi-docs-link">Docs <Icon name="external" size={12} /></Link><button className="defi-account-button" disabled={locked} onClick={() => account ? void navigator.clipboard.writeText(account.address).then(() => app.setNotice("Account address copied.")) : void app.task(app.createPasskey)}><Icon name="wallet" size={16} />{account ? shortAddress(account.address) : "Create passkey wallet"}</button></div>
     </header>
     <main id="main-content" className="defi-main">
-      <div className="defi-intro"><div><p className="defi-eyebrow"><span /> BUILT AROUND YOUR RULES</p><h1>{titles[tab][0]}</h1><p>{titles[tab][1]}</p></div><NetworkBadge /></div>
+      <div className="defi-intro"><div><p className="defi-eyebrow"><span /> BUILT AROUND YOUR RULES</p><h1>{titles[tab][0]}</h1><p>{titles[tab][1]}</p></div><div className="defi-intro-tools"><button className="defi-secondary defi-how-trigger" onClick={() => setExplanation({ flow: tab === "Swap" ? "swap" : tab === "Transfer" ? transferToken === "eth" ? "native" : "token" : tab === "Positions" ? "create" : "rules" })}><Icon name="info" size={15} />How it works</button><NetworkBadge /></div></div>
       {!config && <div className="defi-banner" role="status">The DeFi app is deployed on the local devnet. Select Local devnet to swap, transfer, and manage positions.</div>}
       {app.error && <div className="defi-banner error" role="alert"><Icon name="info" size={18} /><span>{app.error}</span><button onClick={() => app.setError("")} aria-label="Dismiss error"><Icon name="close" size={15} /></button></div>}
       {app.notice && <div className="defi-banner" role="status"><Icon name="info" size={18} /><span>{app.notice}</span><button onClick={() => app.setNotice("")} aria-label="Dismiss notification"><Icon name="close" size={15} /></button></div>}
@@ -284,11 +287,13 @@ export function DefiApp() {
             {!app.wallet && <button className="defi-text-button" disabled={locked || !app.ready} onClick={() => void app.task(app.createPasskey)}>Create passkey wallet</button>}
           </div><small>{app.wallet ? `Approve each transaction with your passkey at ${app.wallet.origin}. Public wallet metadata is saved on this device. Keep access to your passkey; recovery is not configured.` : "The test key is stored in this tab. Export it before closing. Creating a passkey wallet gives you a separate account."}</small></> : <><p>Create a smart wallet with your passkey. Your wallet verifies each approval onchain.</p><button className="defi-secondary" disabled={locked || !app.ready} onClick={() => void app.task(app.createPasskey)}>Create passkey wallet</button><button className="defi-text-button" disabled={locked} onClick={app.createAccount}>Use a disposable test account</button><small>Local devnet assets have no real value. Your passkey provider manages the wallet's private key.</small></>}
           <input ref={accountFile} type="file" accept="application/json,.json" hidden aria-label="Wallet or test account export file" onChange={event => { const file = event.target.files?.[0]; if (file) void file.text().then(app.importAccount); event.target.value = ""; }} /><button className="defi-text-button" disabled={locked} onClick={() => accountFile.current?.click()}>Import wallet / test account</button>
+          <button className="defi-text-button" onClick={() => setExplanation({ flow: "wallet" })}><Icon name="info" size={13} />How wallets & claims work</button>
         </section><div className="defi-powered"><span className="defi-tiny-dot" /> Native frames. Official Aqua settlement.</div></aside>
       </div>
       <details className="defi-activity"><summary><span>Recent activity</span><span>{app.activity.length} transactions <span className="defi-activity-chevron" aria-hidden="true">⌄</span></span></summary><div className="defi-activity-content">{app.activity.length ? <div className="defi-activity-table">{app.activity.map(item => <div key={item.hash}><span className={`defi-activity-icon ${item.status}`}><Icon name={item.status === "confirmed" ? "check" : item.status === "failed" ? "close" : "refresh"} size={16} /></span><span><strong>{item.title}</strong><small>{new Date(item.at).toLocaleString()}</small></span><span className={`defi-status ${item.status}`}>{item.status === "pending" ? "Needs confirmation" : item.status}</span><a href={`${app.network.id === "local" ? "http://localhost:5173" : "https://explorer.altmempool.wtf"}/tx/${item.hash}`} target="_blank" rel="noreferrer">{shortAddress(item.hash)} <Icon name="external" size={13} /></a></div>)}</div> : <div className="defi-empty"><span><Icon name="layers" size={22} /></span><div><strong>Your next move starts here.</strong><p>Confirmed swaps and transfers will appear in this space.</p></div></div>}</div></details>
       <footer className="defi-footer"><span>FramePay · Local devnet preview</span><span>{app.wallet ? "Test assets only · Passkey authorization" : "Test assets only · EOA authorization"}</span><Link href="/playground">Developer playground ↗</Link></footer>
     </main>
-    {app.review && <ReviewModal review={app.review} busy={busy} confirm={() => void app.confirm()} cancel={() => app.setReview(null)} />}
+    {app.review && <ReviewModal review={app.review} busy={busy} confirm={() => void app.confirm()} cancel={() => app.setReview(null)} explain={() => setExplanation({ flow: reviewFlow(app.review!), review: app.review! })} />}
+    {explanation && <HowItWorks initialFlow={explanation.flow} review={explanation.review} context={{ network: app.network.id, deployment: config, sponsor: app.sponsor, wallet: app.wallet, accountAddress: account?.address, relayAddress: app.relayAddress, sponsored }} close={() => setExplanation(null)} />}
   </div>;
 }

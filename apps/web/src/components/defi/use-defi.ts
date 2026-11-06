@@ -8,6 +8,7 @@ import passkeyDeployments from "../../../../../config/passkeys.json";
 import paymasters from "../../../../../config/paymasters.json";
 import { useNetwork } from "../network";
 import { frameClient, rpc } from "@/lib/rpc";
+import { frameBudgets } from "@/lib/frame-budgets";
 import { tokenAbi, type AppDeployment, type Position } from "@/lib/defi-contracts";
 
 export type AppCall = { to: Address; data: Hex; value?: bigint };
@@ -157,10 +158,10 @@ export function useDefi() {
     const relayKey = ensureRelayKey();
     const sender = privateKeyToAccount(relayKey).address;
     const profile = getProfile("ethrex-eip8141-tracer");
-    const frames = [frame(profile, "VERIFY", { scope: sponsored ? "EXECUTION" : "EXECUTION_AND_PAYMENT", execution: 30_000n })];
-    if (sponsored) frames.push(frame(profile, "VERIFY", { target: sponsor!.address as Address, scope: "PAYMENT", execution: 50_000n }));
+    const frames = [frame(profile, "VERIFY", { scope: sponsored ? "EXECUTION" : "EXECUTION_AND_PAYMENT", ...frameBudgets.account })];
+    if (sponsored) frames.push(frame(profile, "VERIFY", { target: sponsor!.address as Address, scope: "PAYMENT", ...frameBudgets.payment }));
     for (const call of calls) frames.push(frame(profile, "SENDER", { target: call.to, data: call.data, value: call.value ?? 0n,
-      execution: deploying ? 2_000_000n : wallet ? 1_500_000n : 600_000n, state: deploying ? 14_000_000n : wallet ? 6_000_000n : 1_500_000n }));
+      ...(deploying ? frameBudgets.deployment : wallet ? frameBudgets.wallet : frameBudgets.eoa) }));
     return frameClient(network.id).prepareFrameTransaction({ sender, frames, maxFeePerGas: 2_000_000n, maxPriorityFeePerGas: 1_000_000n });
   }
   async function deployWallet() {
@@ -286,6 +287,6 @@ export function useDefi() {
     } finally { busyRef.current = false; if (mounted.current) setBusy(false); }
   }
   return { network, deployment, sponsor, account, ready, busy, locked, error, setError, notice, setNotice,
-    review, setReview, pending, activity, positions, savePosition, balances, claimed, publicClient, wallet, walletDeployed, createPasskey, deployWallet,
+    review, setReview, pending, activity, positions, savePosition, balances, claimed, publicClient, wallet, walletDeployed, relayAddress: relayAccount?.address, createPasskey, deployWallet,
     refreshVersion, storageKey, refresh, createAccount, exportAccount, importAccount, task, prepare, confirm, inspect };
 }

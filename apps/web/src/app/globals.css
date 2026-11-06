@@ -2586,3 +2586,57 @@ textarea.text-input {
     display: none;
   }
 }
+
+/* Contextual explanation stays inside the viewport, including above a transaction review. */
+.defi-intro-tools { display:flex; align-items:center; gap:18px; }
+.defi-how-trigger { white-space:nowrap; }
+.defi-how { --d-green:#185e48; width:min(920px,calc(100vw - 32px)); max-width:none; height:min(860px,92dvh); max-height:92dvh; padding:0; border:1px solid #d8e2d4; border-radius:14px; color:#284131; background:#fcfdf9; box-shadow:0 20px 90px #122c2833; overflow:hidden; }
+.defi-how[open] { display:flex; flex-direction:column; }
+.defi-how::backdrop { background:#172e2866; backdrop-filter:blur(3px); }
+.defi-how-header { display:flex; justify-content:space-between; align-items:center; gap:20px; padding:20px 26px 16px; background:#fff; flex-shrink:0; }
+.defi-how-header h2 { margin:5px 0 0; font-size:26px; font-weight:550; letter-spacing:-.7px; }
+.defi-how-controls { display:flex; flex-wrap:wrap; gap:12px; padding:12px 26px; border-block:1px solid #e1e8dc; background:#f0f4eb; flex-shrink:0; }
+.defi-how-controls label { display:flex; flex:1; flex-direction:column; gap:4px; color:#617357; font-size:10px; min-width:145px; }
+.defi-how-controls select { width:100%; padding:8px; color:#294635; background:#fff; border:1px solid #d5e0cf; border-radius:6px; font-size:12px; }
+.defi-how-controls strong { display:block; font-size:13px; }.defi-how-controls small { display:block; font-size:11px; color:#607858; margin-top:4px; }
+.defi-how-body { flex:1; min-height:0; overflow:auto; overscroll-behavior:contain; padding:22px 26px; scrollbar-width:thin; }
+.defi-how-lead { font-size:14px; line-height:1.6; color:#46634d; margin-bottom:18px; }
+.defi-how-path { list-style:none; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:0 0 24px; padding:0; }
+.defi-how-path li { padding:14px; border:1px solid #dfe7d7; background:#f4f7ef; border-radius:8px; }
+.defi-how-path li>span { display:inline-grid; place-items:center; width:23px; height:23px; border-radius:50%; color:#fff; background:#386e50; margin-right:8px; font-size:11px; }
+.defi-how-path strong { font-size:12px; }.defi-how-path p { margin-top:9px; font-size:11px; color:#64755c; line-height:1.65; }
+.defi-how-section-title { display:flex; justify-content:space-between; align-items:center; gap:12px; margin:20px 0 10px; }
+.defi-how-section-title h3 { margin:0; font-size:17px; font-weight:550; }.defi-how-section-title>span:not(.defi-pill) { font-size:10px; color:#7b8971; }
+.defi-how-legend { font-size:11px; color:#718168; margin:10px 0 12px; }
+.defi-how-frames { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:9px; }
+.defi-how-frames>li { background:#fff; border:1px solid #dce5d4; border-radius:8px; overflow:hidden; }
+.defi-how-frames>li>details>summary { display:flex; align-items:center; gap:12px; padding:13px 15px; cursor:pointer; list-style:none; }
+.defi-how-frames summary::-webkit-details-marker { display:none; }
+.defi-how-number { display:inline-grid; place-items:center; width:29px; height:29px; flex-shrink:0; background:#edf3e6; border-radius:7px; font-size:12px; color:#5b7b49; }
+.defi-how-frames summary strong { font-size:12px; display:block; }.defi-how-frames summary small { font-size:9px; letter-spacing:.03em; color:#7c8c70; display:block; margin-top:3px; }
+.defi-how-frames summary>svg { margin-left:auto; flex-shrink:0; }.defi-how-frames details[open]>summary>svg { transform:rotate(90deg); }
+.defi-how-frame-body { padding:0 16px 15px 56px; }.defi-how-frame-body>p { color:#5b7051; font-size:12px; }
+.defi-how dl { margin:13px 0; }.defi-how dl>div { display:flex; align-items:flex-start; gap:15px; padding:5px 0; font-size:11px; }.defi-how dt { min-width:75px; color:#829175; }.defi-how dd { min-width:0; margin:0; }
+.defi-how code { font-size:10px; overflow-wrap:anywhere; color:#406741; }
+.defi-how-calls { border-left:2px solid #bcd1ad; padding-left:14px; margin-top:16px; }
+.defi-how h4 { font-size:12px; font-weight:550; margin:0 0 7px; }
+.defi-how-call { border-top:1px solid #e5ebdf; margin-top:10px; padding-top:10px; }
+.defi-how-call>strong { display:block; font-size:12px; }.defi-how-call>code { display:block; margin:4px 0; }.defi-how-call>p,.defi-how-call>small { font-size:11px; color:#738469; }
+.defi-how-call details,.defi-how-proof { font-size:11px; margin-top:10px; color:#56764a; }.defi-how-call details>summary,.defi-how-proof>summary { cursor:pointer; padding:5px 0; }
+.defi-how pre { font-size:10px; padding:12px; background:#f3f6ed; border:1px solid #e0e7d7; border-radius:6px; white-space:pre-wrap; overflow-wrap:anywhere; max-height:220px; overflow:auto; }
+.defi-how-note { font-size:11px; line-height:1.7; padding:12px 14px; border-radius:7px; background:#eef3e7; color:#59724d; margin:14px 0; }
+.defi-how-contracts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.defi-how-contracts article { min-width:0; padding:13px; border:1px solid #e0e6d9; background:#fff; border-radius:8px; }
+.defi-how-contracts p { color:#738468; font-size:11px; line-height:1.6; }.defi-how-contracts article>div { display:flex; gap:5px; align-items:center; margin-top:8px; }.defi-how-contracts code { flex:1; min-width:0; }.defi-how-contracts button { flex-shrink:0; }
+.defi-how-footer { flex-shrink:0; display:flex; align-items:center; justify-content:space-between; gap:14px; padding:12px 26px; border-top:1px solid #dce5d5; background:#fff; }
+.defi-how-footer>span { font-size:10px; color:#7a8a6e; }.defi-how-footer button { white-space:nowrap; }
+.defi-how summary:focus-visible { outline:2px solid #8aae79; outline-offset:-2px; }
+@media (max-width:760px) {
+ .defi-intro-tools { width:100%; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+ .defi-how { width:calc(100vw - 16px); height:94dvh; max-height:94dvh; border-radius:10px; }
+ .defi-how-header { padding:14px 16px 10px; }.defi-how-header h2 { font-size:22px; }
+ .defi-how-controls { padding:10px 16px; gap:8px; }.defi-how-controls label { min-width:120px; }.defi-how-controls label:first-child { flex-basis:100%; }
+ .defi-how-body { padding:16px; }.defi-how-path { grid-template-columns:1fr; gap:8px; }.defi-how-path li { padding:10px 12px; }
+ .defi-how-path p { margin-top:5px; }.defi-how-contracts { grid-template-columns:1fr; }.defi-how-frame-body { padding-left:16px; }
+ .defi-how-footer { padding:10px 16px; }.defi-how dl>div { gap:8px; }.defi-how dt { min-width:64px; }
+}

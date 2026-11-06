@@ -21,7 +21,7 @@ type Network = {
   refresh: () => Promise<void>;
 };
 const Context = createContext<Network>({
-  id: "local",
+  id: "devnet",
   status: "checking",
   block: null,
   locked: false,
@@ -30,7 +30,7 @@ const Context = createContext<Network>({
   refresh: async () => {},
 });
 export function NetworkProvider({ children }: { children: React.ReactNode }) {
-  const [id, setId] = useState<FrameNetworkId>("local");
+  const [id, setId] = useState<FrameNetworkId>("devnet");
   const [status, setStatus] = useState<Network["status"]>("checking");
   const [block, setBlock] = useState<string | null>(null);
   const [locked, setLocked] = useState(false);
@@ -39,12 +39,14 @@ export function NetworkProvider({ children }: { children: React.ReactNode }) {
     const token = ++generation.current;
     setStatus("checking");
     try {
-      const [chainId, height] = await Promise.all([
+      const environment = frameNetworks[id];
+      const [chainId, height, genesis] = await Promise.all([
         rpc<string>("eth_chainId", [], id),
         rpc<string>("eth_blockNumber", [], id),
+        "genesisHash" in environment ? rpc<{ hash: string }>("eth_getBlockByNumber", ["0x0", false], id) : Promise.resolve(null),
       ]);
       if (token !== generation.current) return;
-      if (BigInt(chainId) !== BigInt(frameNetworks[id].chainId)) {
+      if (BigInt(chainId) !== BigInt(environment.chainId) || ("genesisHash" in environment && genesis?.hash !== environment.genesisHash)) {
         setStatus("wrong-chain");
         setBlock(null);
         return;
@@ -92,7 +94,7 @@ export function NetworkBadge() {
           network.select(event.target.value as FrameNetworkId)
         }
       >
-        <option value="local">Local devnet</option>
+        <option value="devnet">FramePay devnet</option>
         <option value="public">Public alt-mempool devnet</option>
       </select>
       <button

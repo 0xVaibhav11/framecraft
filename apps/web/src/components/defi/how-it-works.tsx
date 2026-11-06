@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { decodeFunctionData, formatEther, type Address, type Hex } from "viem";
-import { getProfile, passkeyFactoryAbi, passkeyWalletAbi, type Frame } from "@framepay/sdk";
+import { frameNetworks, type FrameNetworkId, getProfile, quantumFactoryAbi, quantumWalletAbi, passkeyFactoryAbi, passkeyWalletAbi, type Frame } from "@framepay/sdk";
+import quantumDeployments from "../../../../../config/quantum.json";
 import passkeys from "../../../../../config/passkeys.json";
 import { aquaAbi, guardAbi, swapAbi, tokenAbi, type AppDeployment } from "@/lib/defi-contracts";
 import { frameBudgets } from "@/lib/frame-budgets";
@@ -10,8 +11,8 @@ import type { Review } from "./use-defi";
 
 export type Flow = "swap" | "token" | "native" | "create" | "cancel" | "wallet" | "claim" | "rules" | "faucet";
 type Context = {
-  network: "local" | "public"; deployment: AppDeployment | null;
-  sponsor?: { address: string } | null; wallet?: { address: Address } | null;
+  network: FrameNetworkId; deployment: AppDeployment | null;
+  sponsor?: { address: string } | null; wallet?: { address: Address; factory?: Address; falconPublicKey?: Hex[] } | null;
   accountAddress?: Address; relayAddress?: Address; sponsored: boolean;
 };
 type CallInfo = { name: string; target?: string; description: string; optional?: boolean; data?: Hex; value?: bigint; args?: unknown };
@@ -22,7 +23,7 @@ const flows: Record<Flow, { title: string; description: string; before: string; 
   native: { title: "ETH transfer", description: "Send your own test ETH through the transfer guard. Sponsorship covers gas, not the ETH being sent.", before: "Check the recipient, ETH balance, saved cap and expiry.", effect: "The guard checks the cap and deadline, then forwards the ETH to the recipient." },
   create: { title: "Create recurring buy", description: "Publish a position that buys fpASSET using your fpUSD, within a fixed price and scheduled budget.", before: "Validate the budget, period, price and expiry; build and hash the order with SwapVM.", effect: "Aqua registers the position. Funds stay in your account until another user fills it; no automatic buying bot runs." },
   cancel: { title: "Cancel recurring buy", description: "Stop future fills of a position owned by your account.", before: "Check that the connected account is the position’s maker.", effect: "Aqua docks the order. Unspent funds remain in your account; this does not revoke its shared token allowance." },
-  wallet: { title: "Create passkey wallet", description: "Create a passkey locally, then deploy a wallet controlled by its public key.", before: "The browser registers an ES256 passkey and saves public metadata. Registration itself creates zero frames.", effect: "The factory deploys the predicted CREATE2 wallet. Future spending requires a fresh passkey approval; deployment itself needs no spending signature." },
+  wallet: { title: "Create quantum wallet", description: "A PRF-capable passkey derives an ETHFalcon owner key. ETHFalcon alone authorizes onchain spending; WebAuthn PRF unlocks the key locally.", before: "Register a passkey, evaluate PRF with the constant FramePay.ETHFALCON.v1 salt, and generate the Falcon key in an isolated worker. Save public metadata only. Registration creates zero frames.", effect: "The factory deploys a new CREATE2 wallet with immutable Falcon public key and verifier. Existing P-256 wallets are separate accounts; assets are not migrated automatically." },
   claim: { title: "Get test tokens", description: "Claim 1,000 fpUSD and 100 fpASSET once per account.", before: "Read each token’s claimed flag. Only unclaimed tokens are included.", effect: "Each token contract transfers its fixed claim amount to your account. The paymaster always sponsors this flow." },
   rules: { title: "Save rules", description: "Save your transaction preferences in this browser. Saving rules does not send a transaction.", before: "Validate amounts, expiry, allowed recipients and the sponsorship preference.", effect: "Future drafts use these preferences. Transfer caps and expiry enter signed contract calls; the allowlist remains a browser check. Recurring budgets are set in the position." },
   faucet: { title: "Get test ETH", description: "Ask the devnet faucet to fund your account using skandha_explorer_faucet.", before: "Send your public account address to the faucet service.", effect: "The faucet submits its own funding transaction. The app generates no frame envelope for this request; refresh balances after inclusion." },
@@ -31,7 +32,7 @@ export function reviewFlow(review: Review): Flow {
   return ({ "Confirm swap": "swap", "Confirm transfer": review.details.find(([label]) => label === "Send")?.[1].endsWith(" ETH") ? "native" : "token", "Create recurring buy": "create", "Cancel recurring buy": "cancel", "Deploy passkey wallet": "wallet", "Get test tokens": "claim" } as Record<string, Flow>)[review.title] ?? "swap";
 }
 function decodeCall(target: string | undefined, data: Hex, value = 0n): CallInfo {
-  for (const abi of [tokenAbi, guardAbi, swapAbi, aquaAbi, passkeyFactoryAbi, passkeyWalletAbi]) {
+  for (const abi of [tokenAbi, guardAbi, swapAbi, aquaAbi, passkeyFactoryAbi, passkeyWalletAbi, quantumFactoryAbi, quantumWalletAbi]) {
     try {
       const decoded = decodeFunctionData({ abi, data });
       return { name: `${decoded.functionName}()`, target, description: "Decoded from the reviewed calldata.", data, value, args: decoded.args };
@@ -48,7 +49,7 @@ function flowCalls(flow: Flow, context: Context): CallInfo[] {
     case "native": return [{ name: "transferNative()", target: c?.guard, description: "Carry the transfer amount as call value; enforce the cap and expiry before forwarding ETH." }];
     case "create": return [approve(c?.usd, "Aqua", false), { name: "ship()", target: c?.aqua, description: "Register the order and virtual liquidity for the SwapVM application. Tokens remain with the maker." }];
     case "cancel": return [{ name: "dock()", target: c?.aqua, description: "Invalidate this maker’s order for future fills." }];
-    case "wallet": return [{ name: "createWallet()", target: passkeys[context.network]?.factory, description: "Deploy or return the deterministic wallet for this public key, RP ID, origin and genesis domain." }];
+    case "wallet": return [{ name: "createWallet()", target: context.wallet?.factory ?? (quantumDeployments[context.network] as { factory: string } | null)?.factory, description: context.wallet && !context.wallet.falconPublicKey ? "Deploy or return the legacy wallet for its passkey and site settings." : "Deploy or return the deterministic wallet for this Falcon owner, verifier and genesis domain." }];
     case "claim": return [{ name: "fpUSD.claim()", target: c?.usd, description: "Claim 1,000 fpUSD if not already claimed.", optional: true }, { name: "fpASSET.claim()", target: c?.asset, description: "Claim 100 fpASSET if not already claimed.", optional: true }];
     default: return [];
   }
@@ -58,7 +59,7 @@ function plannedFrames(flow: Flow, context: Context, passkey: boolean, sponsored
   const relay = passkey || flow === "wallet";
   const result: FrameInfo[] = [{ mode: "VERIFY", scope: sponsored ? "EXECUTION" : "EXECUTION_AND_PAYMENT", target: relay ? context.relayAddress : context.accountAddress, title: relay ? "Relay authorization" : "Account authorization", description: `Verify the ${relay ? "disposable relay" : "test account"}’s SECP256K1 authorization for the envelope.${sponsored ? " Approve execution only." : " Approve execution and payment from that account."}`, ...frameBudgets.account, value: 0n }];
   if (sponsored) result.push({ mode: "VERIFY", scope: "PAYMENT", target: context.sponsor?.address, title: "Paymaster approval", description: "FramePayPaymaster reads the maximum transaction cost, checks its ceiling, and approves gas payment from its finite balance.", ...frameBudgets.payment, value: 0n });
-  if (passkey && flow !== "wallet") result.push({ mode: "SENDER", scope: "NONE", target: context.wallet?.address, title: "Wallet.execute()", description: "The relay calls the wallet. It verifies WebAuthn/P-256, RP ID, origin, user presence/verification, nonce and deadline, then executes the batch as the wallet.", ...frameBudgets.wallet, value: 0n, calls });
+  if (passkey && flow !== "wallet") result.push({ mode: "SENDER", scope: "NONE", target: context.wallet?.address, title: "Wallet.execute()", description: context.wallet?.falconPublicKey ? "The wallet verifies the ETHFalcon signature over the batch challenge, checks nonce and expiry, then executes the calls atomically. Passkey PRF runs only in the browser." : "The wallet verifies WebAuthn/P-256, RP ID, origin, user presence/verification, nonce and deadline, then executes the batch.", ...(context.wallet?.falconPublicKey ? frameBudgets.quantum : frameBudgets.wallet), value: 0n, calls });
   else for (const call of calls) result.push({ mode: "SENDER", scope: "NONE", target: call.target, title: call.name, description: call.description, ...(flow === "wallet" ? frameBudgets.deployment : frameBudgets.eoa), value: call.value ?? 0n, optional: call.optional, calls: [call] });
   return result;
 }
@@ -69,7 +70,7 @@ function actualFrame(frame: Frame, sender: Address, index: number, deployment: b
   const target = frame.target ?? sender;
   return { mode, scope, target, ...frame.limits, value: frame.value, data: frame.data,
     title: mode === "VERIFY" ? index === 0 ? "Account / relay authorization" : "Paymaster approval" : decodeCall(target, frame.data).name,
-    description: mode === "VERIFY" ? index === 0 ? "SECP256K1 envelope authorization; this is not the passkey proof." : "The paymaster independently approves payment." : deployment ? "The factory deploys the passkey-owned wallet." : "Executed directly as the frame sender.",
+    description: mode === "VERIFY" ? index === 0 ? "SECP256K1 authorization of the outer envelope. The wallet checks spending authorization inside its execution call." : "The paymaster independently approves payment." : deployment ? "The factory deploys the passkey-owned wallet." : "Executed directly as the frame sender.",
     calls: mode === "VERIFY" ? undefined : [decodeCall(target, frame.data, frame.value)] };
 }
 const pretty = (value: unknown) => JSON.stringify(value, (_, item) => typeof item === "bigint" ? item.toString() : item, 2);
@@ -84,21 +85,24 @@ export function HowItWorks({ initialFlow, context, review, close }: { initialFlo
   useEffect(() => { ref.current?.showModal(); }, []);
   useEffect(() => { body.current?.scrollTo({ top: 0 }); }, [flow, passkey, sponsored]);
   const current = flows[flow];
+  const quantum = !!context.wallet?.falconPublicKey || (!context.wallet && flow === "wallet");
+  const quantumDeployment = quantumDeployments[context.network] as { factory: string; verifier: string } | null;
   const wallet = review ? !!review.walletBatch : passkey;
   const pays = review?.transaction ? review.transaction.frames.some(f => (f.flags & 3) === 1) : review?.walletBatch || flow === "wallet" || flow === "claim" || wallet ? true : sponsored;
   const calls = review?.walletBatch ? review.walletBatch.calls.map(call => decodeCall(call.target, call.data, call.value)) : flowCalls(flow, context);
   const frames = review?.transaction ? review.transaction.frames.map((frame, index) => actualFrame(frame, review.transaction!.sender, index, flow === "wallet")) : plannedFrames(flow, context, wallet, !!pays, calls);
   const c = context.deployment?.contracts;
   const entries = [
+    { name: "ZKNOX_ethfalcon", address: quantumDeployment?.verifier, role: "Pinned official ETHFalcon-512 Keccak verifier. Called inside the wallet execution frame; not a separate frame. Experimental, unaudited upstream.", show: quantum && (wallet || flow === "wallet") },
     { name: "FramePayPaymaster", address: context.sponsor?.address, role: "Approves and funds gas; it does not provide swap capital or transfer value.", show: !!frames.length && !!pays },
-    { name: "FramePayPasskeyWallet", address: context.wallet?.address, role: "Holds assets; verifies WebAuthn and executes the atomic call batch.", show: (!!frames.length && wallet) || flow === "wallet" },
-    { name: "FramePayPasskeyFactory", address: passkeys[context.network]?.factory, role: "CREATE2 deployment with immutable passkey public key and domain settings.", show: flow === "wallet" },
+    { name: quantum ? "FramePayQuantumWallet" : "FramePayPasskeyWallet", address: context.wallet?.address, role: quantum ? "ETHFalcon is the sole onchain spending authority. The PRF-derived key signs the atomic batch. No P-256 verification, admin or recovery key." : "Holds assets; verifies WebAuthn and executes the atomic call batch.", show: (!!frames.length && wallet) || flow === "wallet" },
+    { name: quantum ? "FramePayQuantumFactory" : "FramePayPasskeyFactory", address: quantum ? quantumDeployment?.factory : passkeys[context.network]?.factory, role: quantum ? "CREATE2 deployment with an immutable Falcon owner, verifier and chain domain." : "CREATE2 deployment with immutable passkey public key and domain settings.", show: flow === "wallet" },
     { name: "FramePayRecurringSwapVM", address: c?.router, role: "Runs the recurring-buy program: price, period budget, lifetime budget and expiry.", show: ["swap", "create", "cancel", "rules"].includes(flow) },
     { name: "Official 1inch Aqua", address: c?.aqua, role: "Registers/docks positions and settles swaps using maker balances and allowances.", show: ["swap", "create", "cancel"].includes(flow) },
     { name: "FramePayTransferGuard", address: c?.guard, role: "Enforces transfer amount and deadline; token transfers also check minimum received.", show: ["token", "native", "rules"].includes(flow) },
     { name: "fpUSD · AppTestToken", address: c?.usd, role: "6-decimal test token; claims, allowances and token balances.", show: ["swap", "token", "create", "cancel", "claim"].includes(flow) },
     { name: "fpASSET · AppTestToken", address: c?.asset, role: "18-decimal test asset exchanged for fpUSD.", show: ["swap", "create", "cancel", "claim"].includes(flow) },
-    { name: "P-256 verifier", address: "0x0000000000000000000000000000000000000100", role: "Called inside wallet verification when supported; OpenZeppelin provides a Solidity fallback. This is not a separate frame.", show: !!frames.length && wallet && flow !== "wallet" },
+    { name: "P-256 verifier", address: "0x0000000000000000000000000000000000000100", role: "Called inside wallet verification when supported; OpenZeppelin provides a Solidity fallback. This is not a separate frame.", show: !!frames.length && wallet && !quantum && flow !== "wallet" },
   ].filter(item => item.show);
   async function copy(address: string) {
     try { await navigator.clipboard.writeText(address); setCopied(`Copied ${address}`); }
@@ -115,7 +119,7 @@ export function HowItWorks({ initialFlow, context, review, close }: { initialFlo
     <div className="defi-how-body" ref={body}>
       {!context.deployment && <p className="defi-how-note">No DeFi deployment is configured on this network. The flow below describes the local implementation; unavailable addresses are not shown.</p>}
       <p className="defi-how-lead">{current.description}</p>
-      <ol className="defi-how-path"><li><span>1</span><strong>Prepare</strong><p>{current.before}</p></li><li><span>2</span><strong>{frames.length ? "Authorize" : "Save / request"}</strong><p>{!frames.length ? "No signature or app-generated frames are needed." : wallet && flow !== "wallet" ? "Approve the exact batch with your passkey. The relay signs the outer frame envelope." : flow === "wallet" ? "Review the predicted wallet address. The relay signs the sponsored deployment envelope." : "Your disposable account signs the frame envelope, binding its calls, nonce and gas limits."}</p></li><li><span>3</span><strong>{frames.length ? "Execute" : "Result"}</strong><p>{current.effect}</p></li></ol>
+      <ol className="defi-how-path"><li><span>1</span><strong>Prepare</strong><p>{current.before}</p></li><li><span>2</span><strong>{frames.length ? "Authorize" : "Save / request"}</strong><p>{!frames.length ? "No signature or app-generated frames are needed." : wallet && flow !== "wallet" ? quantum ? "Passkey approval returns a deterministic PRF seed. A temporary worker regenerates the Falcon key, signs the batch challenge, wipes accessible buffers and terminates. The relay signs the outer envelope." : "Approve the exact batch with your passkey. The relay signs the outer frame envelope." : flow === "wallet" ? "Review the predicted wallet address. The relay signs the sponsored deployment envelope." : "Your disposable account signs the frame envelope, binding its calls, nonce and gas limits."}</p></li><li><span>3</span><strong>{frames.length ? "Execute" : "Result"}</strong><p>{current.effect}</p></li></ol>
       <section aria-labelledby="how-frames-title"><div className="defi-how-section-title"><h3 id="how-frames-title">{review ? "Frames for this review" : "Generated frames"}</h3><span className="defi-pill">{frames.length}{!review && frames.some(frame => frame.optional) ? " maximum" : ""} frames</span></div>
         {!review && frames.length > 0 && <p className="defi-small">Illustrative layout. Optional approvals and already-claimed tokens are omitted when preparing. Use “How it works” in a transaction review to inspect its exact calls.</p>}
         {frames.length === 0 ? <p className="defi-how-note">{flow === "rules" ? "0 frames. Saving rules writes to localStorage; it does not install persistent wallet permissions." : "0 app-generated frames. The faucet service owns the funding transaction."}</p> : <>
@@ -128,11 +132,11 @@ export function HowItWorks({ initialFlow, context, review, close }: { initialFlo
               </div>
             </details>
           </li>)}</ol>
-          {review?.walletBatch && <details className="defi-how-proof"><summary>Passkey challenge and replay protection</summary><dl><div><dt>Wallet nonce</dt><dd>{review.walletBatch.nonce.toString()}</dd></div><div><dt>Expiry</dt><dd>{new Date(review.deadline! * 1000).toLocaleString()}</dd></div><div><dt>Challenge</dt><dd><code>{review.walletBatch.challenge}</code></dd></div></dl><p>The signed challenge binds the ordered calls, wallet, chain ID, genesis domain, nonce and expiry. The WebAuthn proof is requested only after Confirm & send.</p></details>}
-          <p className="defi-how-note">{flow === "wallet" ? "Passkey registration creates no frames. These three frames deploy the wallet; later spending is authorized by its passkey." : wallet ? "Passkey verification happens inside Wallet.execute(), not in frame 0. All calls in this wallet batch, including approvals, revert together if one fails." : "For disposable-account transactions, an earlier approval frame may remain effective if a later application frame fails."} Gas limits are caps, not estimated usage.</p>
+          {review?.walletBatch && <details className="defi-how-proof"><summary>{quantum ? "Falcon challenge and replay protection" : "Passkey challenge and replay protection"}</summary><dl><div><dt>Wallet nonce</dt><dd>{review.walletBatch.nonce.toString()}</dd></div><div><dt>Expiry</dt><dd>{new Date(review.deadline! * 1000).toLocaleString()}</dd></div><div><dt>Challenge</dt><dd><code>{review.walletBatch.challenge}</code></dd></div></dl><p>The signed challenge binds the ordered calls, wallet, chain ID, genesis domain, nonce and expiry. Approvals are requested only after Confirm & send. Quantum wallets submit only an ETHFalcon signature. WebAuthn PRF unlocks the key locally.</p></details>}
+          <p className="defi-how-note">{flow === "wallet" ? "Passkey registration creates no frames. These three frames deploy the wallet; later spending is authorized by its configured public keys." : wallet ? "Wallet signature verification happens inside Wallet.execute(), not in frame 0. All calls in this wallet batch, including approvals, revert together if one fails." : "For disposable-account transactions, an earlier approval frame may remain effective if a later application frame fails."} Gas limits are caps, not estimated usage.</p>
         </>}
       </section>
-      <section aria-labelledby="how-contracts-title"><div className="defi-how-section-title"><h3 id="how-contracts-title">Contracts involved</h3><span>{context.network === "local" ? "Local devnet" : "Public devnet"} · 1337</span></div>
+      <section aria-labelledby="how-contracts-title"><div className="defi-how-section-title"><h3 id="how-contracts-title">Contracts involved</h3><span>{frameNetworks[context.network].name} · 1337</span></div>
         {entries.length ? <div className="defi-how-contracts">{entries.map(entry => <article key={entry.name}><h4>{entry.name}</h4><p>{entry.role}</p><div><code>{entry.address ?? "Not deployed / wallet not created"}</code>{entry.address && <button className="defi-icon-button" onClick={() => void copy(entry.address!)} aria-label={`Copy ${entry.name} address`}><Icon name="copy" size={15} /></button>}</div></article>)}</div> : <p className="defi-small">This action makes no direct contract call from the app.</p>}
         {flow === "rules" && <p className="defi-small">The transfer guard shown here is used by future transfers, not by Save rules. SwapVM enforces price/budget rules on future swaps.</p>}
       </section>

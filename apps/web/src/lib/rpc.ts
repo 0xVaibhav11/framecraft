@@ -7,11 +7,11 @@ import {
 
 export const chain = defineChain({
   id: 1337,
-  name: "Local frame devnet",
+  name: "FramePay devnet",
   nativeCurrency: { name: "Test Ether", symbol: "ETH", decimals: 18 },
-  rpcUrls: { default: { http: ["http://localhost:14337/rpc"] } },
+  rpcUrls: { default: { http: [frameNetworks.devnet.rpcUrl] } },
 });
-export function frameClient(networkId: FrameNetworkId = "local") {
+export function frameClient(networkId: FrameNetworkId = "devnet") {
   const network = frameNetworks[networkId];
   return createFrameClient({
     chain: {
@@ -29,7 +29,7 @@ export function frameClient(networkId: FrameNetworkId = "local") {
 export async function rpc<T>(
   method: string,
   params: unknown[] = [],
-  networkId: FrameNetworkId = "local"
+  networkId: FrameNetworkId = "devnet"
 ): Promise<T> {
   const response = await fetch(`/api/rpc?network=${networkId}`, {
     method: "POST",

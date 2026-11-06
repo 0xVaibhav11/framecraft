@@ -14,7 +14,7 @@ export async function handleRpc(
     fetchImpl = fetch,
   } = {}
 ) {
-  const networkId = new URL(request.url).searchParams.get("network") ?? "local";
+  const networkId = new URL(request.url).searchParams.get("network") ?? "devnet";
   if (!Object.hasOwn(frameNetworks, networkId))
     return failure(null, -32600, "Unknown frame network.", 400);
   const network = frameNetworks[networkId];
@@ -74,7 +74,7 @@ export async function handleRpc(
     return failure(
       body?.id,
       -32600,
-      "This request is not supported by the local playground.",
+      "This request is not supported by the playground.",
       400
     );
   if (!validateGateway(gateway, networkId))
@@ -136,7 +136,9 @@ export async function handleRpc(
     return failure(
       body.id,
       -32000,
-      networkId === "local"
+      networkId === "devnet"
+        ? "FramePay devnet gateway unavailable. Check the configured Cloudflare tunnel."
+        : networkId === "local"
         ? "Local gateway unavailable. Start the devnet and check port 14337."
         : "Public devnet gateway unavailable. Check connectivity and try again.",
       503

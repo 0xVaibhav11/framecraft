@@ -1093,13 +1093,13 @@ export function Playground() {
             {displayHash && (
               <div className="transaction-hash">
                 <span>TX HASH</span>
-                <a
+                {environment.explorerUrl ? <a
                   href={`${environment.explorerUrl}/tx/${displayHash}`}
                   target="_blank"
                   rel="noreferrer"
                 >
                   <code>{displayHash}</code>
-                </a>
+                </a> : <code>{displayHash}</code>}
                 <button
                   className="icon-button"
                   aria-label="Copy transaction hash"

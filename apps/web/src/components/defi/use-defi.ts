@@ -4,6 +4,8 @@ import { createPublicClient, encodeFunctionData, http, isAddress, keccak256, typ
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { frame, getProfile, privateKeyToFrameSigner, txHash, type FrameTx, registerPasskey, signWithPasskey, passkeyChallenge, passkeyFactoryArgs, passkeyFactoryAbi, passkeyWalletAbi, type PasskeyCredential, type WalletCall } from "@framepay/sdk";
 import deployments from "../../../../../config/defi.json";
+import { quantumWalletAbi, quantumFactoryAbi, quantumFactoryArgs, quantumChallenge, falconKeyHash, validateFalconKey, registerQuantumPasskey, signWithQuantumPasskey, type QuantumCredential } from "@framepay/sdk";
+import quantumDeployments from "../../../../../config/quantum.json";
 import passkeyDeployments from "../../../../../config/passkeys.json";
 import paymasters from "../../../../../config/paymasters.json";
 import { useNetwork } from "../network";
@@ -13,7 +15,8 @@ import { tokenAbi, type AppDeployment, type Position } from "@/lib/defi-contract
 
 export type AppCall = { to: Address; data: Hex; value?: bigint };
 export type Activity = { hash: Hex; title: string; status: "pending" | "confirmed" | "failed"; frameCount: number; at: number };
-type PasskeyWallet = PasskeyCredential & { address: Address; networkDomain: Hex; factory: Address };
+type PasskeyWallet = PasskeyCredential & { address: Address; networkDomain: Hex; factory: Address; falconPublicKey?: Hex[] };
+type QuantumDeployment = { genesisHash: Hex; factory: Address; factoryCodeHash: Hex; verifier: Address; verifierCodeHash: Hex };
 function parseWallet(value: unknown): PasskeyWallet {
   if (!value || typeof value !== "object") throw new Error("Invalid wallet metadata.");
   const w = value as PasskeyWallet;
@@ -22,7 +25,8 @@ function parseWallet(value: unknown): PasskeyWallet {
   const url = new URL(w.origin);
   if (url.origin !== w.origin || url.hostname !== w.rpId || w.origin.length > 255) throw new Error("Invalid passkey site.");
   passkeyFactoryArgs(w, w.networkDomain);
-  return { address: w.address, factory: w.factory, qx: w.qx, qy: w.qy, networkDomain: w.networkDomain, credentialId: w.credentialId, origin: w.origin, rpId: w.rpId };
+  if (w.falconPublicKey !== undefined) validateFalconKey(w.falconPublicKey);
+  return { address: w.address, factory: w.factory, qx: w.qx, qy: w.qy, networkDomain: w.networkDomain, credentialId: w.credentialId, origin: w.origin, rpId: w.rpId, ...(w.falconPublicKey ? { falconPublicKey: w.falconPublicKey } : {}) };
 }
 export type Review = { title: string; details: [string, string][]; assertions: string[]; transaction?: FrameTx; walletBatch?: { calls: WalletCall[]; nonce: bigint; challenge: Hex }; deadline?: number; position?: Position };
 const errorMessage = (error: unknown) => error instanceof Error ? error.message.split("\n")[0] : "The request failed. Try inspecting the transaction.";
@@ -32,6 +36,7 @@ export function useDefi() {
   const network = useNetwork();
   const deployment = deployments[network.id] as AppDeployment | null;
   const sponsor = paymasters[network.id];
+  const quantumDeployment = quantumDeployments[network.id] as QuantumDeployment | null;
   const passkeyDeployment = passkeyDeployments[network.id];
   const storageKey = `framepay:defi:${network.id}:${deployment?.genesisHash ?? "unavailable"}`;
   const [key, setKey] = useState<Hex | null>(null);
@@ -79,6 +84,7 @@ export function useDefi() {
 
   const refresh = useCallback(async () => {
     const generation = ++refreshGeneration.current;
+    setReady(false);
     if (!deployment || !sponsor) { setReady(false); return; }
     try {
       const genesis = await rpc<{ hash: Hex }>("eth_getBlockByNumber", ["0x0", false], network.id);
@@ -93,20 +99,31 @@ export function useDefi() {
         if (passkeyDeployment.genesisHash !== genesis.hash || keccak256(await rpc<Hex>("eth_getCode", [passkeyDeployment.factory, "latest"], network.id)) !== passkeyDeployment.factoryCodeHash) throw new Error("Passkey factory does not match this devnet.");
       }
       if (wallet) {
-        if (!passkeyDeployment || wallet.networkDomain !== genesis.hash || wallet.factory.toLowerCase() !== passkeyDeployment.factory.toLowerCase()) throw new Error("This passkey wallet belongs to another deployment.");
-        const predicted = await publicClient.readContract({ address: wallet.factory, abi: passkeyFactoryAbi, functionName: "predict", args: passkeyFactoryArgs(wallet, wallet.networkDomain) });
+        const recorded = wallet.falconPublicKey ? quantumDeployment : passkeyDeployment;
+        if (!recorded || wallet.networkDomain !== genesis.hash || wallet.factory.toLowerCase() !== recorded.factory.toLowerCase()) throw new Error("This passkey wallet belongs to another deployment.");
+        if (keccak256(await rpc<Hex>("eth_getCode", [recorded.factory, "latest"], network.id)) !== recorded.factoryCodeHash) throw new Error("Wallet factory code mismatch.");
+        if (wallet.falconPublicKey && quantumDeployment && keccak256(await rpc<Hex>("eth_getCode", [quantumDeployment.verifier, "latest"], network.id)) !== quantumDeployment.verifierCodeHash) throw new Error("ETHFalcon verifier code mismatch.");
+        const predicted = wallet.falconPublicKey
+          ? await publicClient.readContract({ address: wallet.factory, abi: quantumFactoryAbi, functionName: "predict", args: quantumFactoryArgs(wallet as QuantumCredential, wallet.networkDomain) })
+          : await publicClient.readContract({ address: wallet.factory, abi: passkeyFactoryAbi, functionName: "predict", args: passkeyFactoryArgs(wallet, wallet.networkDomain) });
         if (predicted.toLowerCase() !== wallet.address.toLowerCase()) throw new Error("Passkey wallet address does not match its public key and factory.");
         const code = await rpc<Hex>("eth_getCode", [wallet.address, "latest"], network.id);
         if (code !== "0x") {
-          const names = ["qx", "qy", "rpIdHash", "originHash", "networkDomain"] as const;
+          if (wallet.falconPublicKey) {
+            const [keyHash, verifier] = await Promise.all([
+              publicClient.readContract({ address: wallet.address, abi: quantumWalletAbi, functionName: "falconKeyHash" }),
+              publicClient.readContract({ address: wallet.address, abi: quantumWalletAbi, functionName: "verifier" }),
+            ]);
+            if (keyHash !== falconKeyHash(wallet.falconPublicKey) || verifier.toLowerCase() !== quantumDeployment?.verifier.toLowerCase()) throw new Error("Wallet Falcon owner or verifier mismatch.");
+          }
+          const names = wallet.falconPublicKey ? ["networkDomain"] as const : ["qx", "qy", "rpIdHash", "originHash", "networkDomain"] as const;
           const values = await Promise.all(names.map(functionName => publicClient.readContract({ address: wallet.address, abi: passkeyWalletAbi, functionName })));
-          const expected = passkeyFactoryArgs(wallet, wallet.networkDomain);
+          const expected = wallet.falconPublicKey ? [wallet.networkDomain] : passkeyFactoryArgs(wallet, wallet.networkDomain);
           if (values.some((value, index) => value.toLowerCase() !== expected[index].toLowerCase())) throw new Error("Deployed wallet owner or domain mismatch.");
         }
         if (mounted.current && generation === refreshGeneration.current) setWalletDeployed(code !== "0x");
       }
       if (!mounted.current || generation !== refreshGeneration.current) return;
-      setReady(true);
       if (accountAddress) {
         const [usd, asset, eth, usdClaimed, assetClaimed] = await Promise.all([
           publicClient.readContract({ address: deployment.contracts.usd, abi: tokenAbi, functionName: "balanceOf", args: [accountAddress] }),
@@ -118,9 +135,10 @@ export function useDefi() {
         if (!mounted.current || generation !== refreshGeneration.current) return;
         setBalances({ usd, asset, eth: BigInt(eth) }); setClaimed({ usd: usdClaimed, asset: assetClaimed });
       }
+      setReady(true);
       setRefreshVersion(value => value + 1);
     } catch (err) { if (mounted.current && generation === refreshGeneration.current) { setReady(false); setError(errorMessage(err)); } }
-  }, [accountAddress, wallet, deployment, passkeyDeployment, sponsor, network.id, publicClient]);
+  }, [accountAddress, wallet, deployment, passkeyDeployment, quantumDeployment, sponsor, network.id, publicClient]);
   useEffect(() => { void refresh(); return () => { refreshGeneration.current++; }; }, [refresh]);
   const locked = busy || review !== null || pending !== null;
   useEffect(() => { network.setLocked(locked); return () => network.setLocked(false); }, [locked, network.setLocked]);
@@ -144,15 +162,18 @@ export function useDefi() {
     if (key) return key;
     const value = generatePrivateKey(); sessionStorage.setItem(`${storageKey}:key`, value); setKey(value); return value;
   }
-  async function createPasskey() {
-    if (!ready || !deployment || !passkeyDeployment) throw new Error("Connect to the deployed local passkey factory first.");
-    // Start the native credential prompt directly from the user's click.
-    const credential = await registerPasskey();
-    const address = await publicClient.readContract({ address: passkeyDeployment.factory as Address, abi: passkeyFactoryAbi, functionName: "predict", args: passkeyFactoryArgs(credential, deployment.genesisHash) });
-    const record: PasskeyWallet = { ...credential, address, networkDomain: deployment.genesisHash, factory: passkeyDeployment.factory as Address };
+  async function createPasskey(quantum = true) {
+    const recorded = quantum ? quantumDeployment : passkeyDeployment;
+    if (!ready || !deployment || !recorded) throw new Error(quantum ? "Deploy the ETHFalcon verifier and quantum factory first: npm run quantum:deploy." : "Connect to the deployed passkey factory first.");
+    if (recorded.genesisHash !== deployment.genesisHash || keccak256(await rpc<Hex>("eth_getCode", [recorded.factory, "latest"], network.id)) !== recorded.factoryCodeHash) throw new Error("Wallet factory does not match this chain.");
+    const credential = quantum ? await registerQuantumPasskey() : await registerPasskey();
+    const address = quantum
+      ? await publicClient.readContract({ address: recorded.factory as Address, abi: quantumFactoryAbi, functionName: "predict", args: quantumFactoryArgs(credential as QuantumCredential, deployment.genesisHash) })
+      : await publicClient.readContract({ address: recorded.factory as Address, abi: passkeyFactoryAbi, functionName: "predict", args: passkeyFactoryArgs(credential, deployment.genesisHash) });
+    const record: PasskeyWallet = { ...credential, address, networkDomain: deployment.genesisHash, factory: recorded.factory as Address };
     ensureRelayKey();
     safeStore(localStorage, `${storageKey}:passkey`, record); setWallet(record); setWalletDeployed(false);
-    setNotice("Passkey created. Deploy your wallet next; the paymaster covers the local network fee.");
+    setNotice(quantum ? "PRF-derived Falcon owner created. Only public keys were saved. Deploy your quantum wallet next." : "Passkey created. Deploy your wallet next.");
   }
   async function relayTransaction(calls: AppCall[], sponsored: boolean, deploying = false) {
     const relayKey = ensureRelayKey();
@@ -161,18 +182,18 @@ export function useDefi() {
     const frames = [frame(profile, "VERIFY", { scope: sponsored ? "EXECUTION" : "EXECUTION_AND_PAYMENT", ...frameBudgets.account })];
     if (sponsored) frames.push(frame(profile, "VERIFY", { target: sponsor!.address as Address, scope: "PAYMENT", ...frameBudgets.payment }));
     for (const call of calls) frames.push(frame(profile, "SENDER", { target: call.to, data: call.data, value: call.value ?? 0n,
-      ...(deploying ? frameBudgets.deployment : wallet ? frameBudgets.wallet : frameBudgets.eoa) }));
+      ...(deploying ? frameBudgets.deployment : wallet?.falconPublicKey ? frameBudgets.quantum : wallet ? frameBudgets.wallet : frameBudgets.eoa) }));
     return frameClient(network.id).prepareFrameTransaction({ sender, frames, maxFeePerGas: 2_000_000n, maxPriorityFeePerGas: 1_000_000n });
   }
   async function deployWallet() {
     if (!wallet || !ready || walletDeployed) throw new Error("Create a passkey before deploying its wallet.");
-    const data = encodeFunctionData({ abi: passkeyFactoryAbi, functionName: "createWallet", args: passkeyFactoryArgs(wallet, wallet.networkDomain) });
+    const data = wallet.falconPublicKey ? encodeFunctionData({ abi: quantumFactoryAbi, functionName: "createWallet", args: quantumFactoryArgs(wallet as QuantumCredential, wallet.networkDomain) }) : encodeFunctionData({ abi: passkeyFactoryAbi, functionName: "createWallet", args: passkeyFactoryArgs(wallet, wallet.networkDomain) });
     const transaction = await relayTransaction([{ to: wallet.factory, data }], true, true);
-    setReview({ title: "Deploy passkey wallet", details: [["Wallet", wallet.address], ["Passkey site", wallet.origin], ["Gas payer", "FramePay paymaster"]], assertions: ["Only your passkey can authorize wallet spending", "No recovery key or upgrade administrator", "Wallet creation does not move your existing account’s assets"], transaction });
+    setReview({ title: "Deploy passkey wallet", details: [["Wallet", wallet.address], ["Passkey site", wallet.origin], ["Gas payer", "FramePay paymaster"]], assertions: [wallet.falconPublicKey ? "Only the ETHFalcon owner signature authorizes spending; passkey PRF unlocks the key locally" : "Only your passkey can authorize wallet spending", "No recovery key or upgrade administrator", "Wallet creation does not move your existing account’s assets"], transaction });
   }
   function exportAccount() {
     if (!account || (!wallet && !key)) return;
-    const url = URL.createObjectURL(new Blob([JSON.stringify(wallet ? { type: "framepay-passkey-v1", network: network.id, genesisHash: deployment?.genesisHash, wallet } : { network: network.id, genesisHash: deployment?.genesisHash, address: account.address, privateKey: key }, null, 2)], { type: "application/json" }));
+    const url = URL.createObjectURL(new Blob([JSON.stringify(wallet ? { type: wallet.falconPublicKey ? "framepay-quantum-v1" : "framepay-passkey-v1", network: network.id, genesisHash: deployment?.genesisHash, wallet } : { network: network.id, genesisHash: deployment?.genesisHash, address: account.address, privateKey: key }, null, 2)], { type: "application/json" }));
     const anchor = document.createElement("a"); anchor.href = url; anchor.download = `framepay-${wallet ? "wallet-metadata" : "test-account"}-${account.address.slice(2, 8)}.json`; anchor.click(); URL.revokeObjectURL(url);
     setNotice(wallet ? "Wallet metadata exported. It contains no private key; you still need the original or synced passkey to authorize transactions." : "Test account exported. This file contains its private key; keep it private.");
   }
@@ -181,9 +202,10 @@ export function useDefi() {
     try {
       const saved = JSON.parse(raw);
       if (saved.network !== network.id || saved.genesisHash !== deployment.genesisHash) throw new Error("This account export belongs to another network or genesis.");
-      if (saved.type === "framepay-passkey-v1") {
+      if (saved.type === "framepay-passkey-v1" || saved.type === "framepay-quantum-v1") {
         saved.wallet = parseWallet(saved.wallet);
-        if (!passkeyDeployment || saved.wallet?.factory?.toLowerCase() !== passkeyDeployment.factory.toLowerCase() || saved.wallet?.networkDomain !== deployment.genesisHash) throw new Error("Wallet deployment mismatch.");
+        const recorded = saved.wallet.falconPublicKey ? quantumDeployment : passkeyDeployment;
+        if (!recorded || saved.wallet?.factory?.toLowerCase() !== recorded.factory.toLowerCase() || saved.wallet?.networkDomain !== deployment.genesisHash) throw new Error("Wallet deployment mismatch.");
         passkeyFactoryArgs(saved.wallet, deployment.genesisHash);
         ensureRelayKey(); safeStore(localStorage, `${storageKey}:passkey`, saved.wallet); setReady(false); setWallet(saved.wallet); setWalletDeployed(false); setError("");
         setNotice("Public wallet metadata restored. Your passkey is still required to spend."); return;
@@ -227,10 +249,10 @@ export function useDefi() {
       const block = await rpc<{ timestamp: Hex }>("eth_getBlockByNumber", ["latest", false], network.id);
       const deadline = args.deadline ?? Number(BigInt(block.timestamp)) + 600;
       const calls = args.calls.map(call => ({ target: call.to, value: call.value ?? 0n, data: call.data }));
-      const challenge = passkeyChallenge({ chainId: 1337n, wallet: wallet.address, networkDomain: wallet.networkDomain, nonce, deadline: BigInt(deadline), calls });
+      const challenge = (wallet.falconPublicKey ? quantumChallenge : passkeyChallenge)({ chainId: 1337n, wallet: wallet.address, networkDomain: wallet.networkDomain, nonce, deadline: BigInt(deadline), calls });
       const expected = await publicClient.readContract({ address: wallet.address, abi: passkeyWalletAbi, functionName: "challenge", args: [calls, nonce, BigInt(deadline)] });
       if (challenge !== expected) throw new Error("Local and onchain authorization challenges differ.");
-      setReview({ ...args, deadline, walletBatch: { calls, nonce, challenge }, assertions: [...args.assertions, "Passkey signature and replay nonce verified on-chain", "The complete wallet batch succeeds or reverts together"], details: [...args.details, ["Wallet", wallet.address], ["Authorization", "Passkey · user verification required"], ["Gas payer", "FramePay paymaster"]] });
+      setReview({ ...args, deadline, walletBatch: { calls, nonce, challenge }, assertions: [...args.assertions, wallet.falconPublicKey ? "ETHFalcon signature and replay nonce verified onchain" : "Passkey signature and replay nonce verified on-chain", "The complete wallet batch succeeds or reverts together"], details: [...args.details, ["Wallet", wallet.address], ["Authorization", wallet.falconPublicKey ? "ETHFalcon · passkey PRF unlocks the key" : "Passkey · user verification required"], ["Gas payer", "FramePay paymaster"]] });
     } else {
       const transaction = await relayTransaction(args.calls, args.sponsored);
       setReview({ ...args, transaction, details: [...args.details, ["Gas payer", args.sponsored ? "FramePay paymaster" : "Your test account"]] });
@@ -261,11 +283,19 @@ export function useDefi() {
       let transaction = intent.transaction;
       if (intent.walletBatch) {
         if (!wallet || !intent.deadline) throw new Error("Passkey review is incomplete.");
-        const proof = await signWithPasskey(wallet, intent.walletBatch.challenge);
         const batch = intent.walletBatch;
-        const valid = await publicClient.readContract({ address: wallet.address, abi: passkeyWalletAbi, functionName: "verify", args: [batch.calls, batch.nonce, BigInt(intent.deadline), proof] });
-        if (!valid) throw new Error("Onchain passkey verification failed or this approval expired. Prepare a new review.");
-        const data = encodeFunctionData({ abi: passkeyWalletAbi, functionName: "execute", args: [batch.calls, batch.nonce, BigInt(intent.deadline), proof] });
+        let data: Hex;
+        if (wallet.falconPublicKey) {
+          const proof = await signWithQuantumPasskey(wallet as QuantumCredential, batch.challenge);
+          const args = [batch.calls, batch.nonce, BigInt(intent.deadline), proof] as const;
+          if (!await publicClient.readContract({ address: wallet.address, abi: quantumWalletAbi, functionName: "verify", args })) throw new Error("Onchain ETHFalcon verification failed. Prepare a new review.");
+          data = encodeFunctionData({ abi: quantumWalletAbi, functionName: "execute", args });
+        } else {
+          const proof = await signWithPasskey(wallet, batch.challenge);
+          const args = [batch.calls, batch.nonce, BigInt(intent.deadline), proof] as const;
+          if (!await publicClient.readContract({ address: wallet.address, abi: passkeyWalletAbi, functionName: "verify", args })) throw new Error("Onchain passkey verification failed. Prepare a new review.");
+          data = encodeFunctionData({ abi: passkeyWalletAbi, functionName: "execute", args });
+        }
         transaction = await relayTransaction([{ to: wallet.address, data }], true);
       }
       if (!transaction) throw new Error("Missing prepared transaction.");

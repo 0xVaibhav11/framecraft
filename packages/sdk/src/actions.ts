@@ -4,6 +4,7 @@ import { newTx, secp256k1Placeholder, sigHash, txHash } from '@forshtat/hegota-s
 import { toWire } from '@forshtat/hegota-support/rpc';
 import type { FrameActions, FrameAdmission, FrameProfileId, FrameReceipt, FrameTx } from './types.js';
 import { FramePayError, requireCondition, rpcError, type FramePayPhase } from './errors.js';
+import { buildTransferPlan } from './transfer.js';
 
 type Request = (request: { method: string; params?: readonly unknown[] }, options?: { retryCount?: number; dedupe?: boolean }) => Promise<unknown>;
 const isHash = (value: unknown): value is Hex => typeof value === 'string' && /^0x[0-9a-fA-F]{64}$/.test(value);
@@ -75,6 +76,28 @@ export function frameActions({ profile: profileId }: { profile: FrameProfileId }
       };
     }
     const actions: FrameActions = {
+      async prepareTransfer(parameters) {
+        const plan = buildTransferPlan({ ...parameters, profile: profileId });
+        await checkChain('prepare');
+        // This convenience module intentionally supports EOA ETH transfers only.
+        // Contract accounts/actions should use the explicit low-level frame API.
+        for (const address of new Set([plan.summary.sender, plan.summary.recipient])) {
+          const code = await call('eth_getCode', [address, 'latest'], 'prepare');
+          requireCondition(code === '0x', 'INVALID_TRANSACTION', 'The transfer module requires a plain EOA sender and recipient.', 'prepare');
+        }
+        if (plan.summary.paymentType === 'paymaster') {
+          const code = await call('eth_getCode', [plan.summary.payer, 'latest'], 'prepare');
+          requireCondition(typeof code === 'string' && /^0x(?:[0-9a-fA-F]{2})+$/.test(code),
+            'INVALID_TRANSACTION', 'No deployed contract code was found at the selected paymaster.', 'prepare');
+        }
+        const balance = await call('eth_getBalance', [plan.summary.sender, 'latest'], 'prepare');
+        requireCondition(isQuantity(balance), 'INVALID_RESPONSE', 'Gateway returned an invalid sender balance.', 'prepare');
+        requireCondition(BigInt(balance) >= plan.summary.value
+          && (plan.summary.paymentType === 'paymaster' || BigInt(balance) > plan.summary.value),
+          'INVALID_TRANSACTION', 'Sender needs the transfer value and, when self-paying, ETH for gas. Sponsorship covers gas only.', 'prepare');
+        // Code presence is not a compatibility, funding, or sponsorship guarantee.
+        return actions.prepareFrameTransaction(plan.parameters);
+      },
       async prepareFrameTransaction(parameters) {
         // Snapshot before asynchronous RPC calls so caller mutation cannot change the prepared request.
         const p = structuredClone(parameters);

@@ -8,6 +8,9 @@ import { FramePayError, requireCondition } from './errors.js';
 
 export { frameActions } from './actions.js';
 export { FramePayError } from './errors.js';
+export { buildTransferPlan } from './transfer.js';
+export { frameNetworks } from './networks.js';
+export type { FrameNetworkId } from './networks.js';
 export type * from './types.js';
 export type { FramePayErrorCode, FramePayPhase } from './errors.js';
 export { frame, secp256k1Placeholder, sigHash, txHash } from '@forshtat/hegota-support/tx';

@@ -16,6 +16,36 @@ export interface PrepareFrameParameters {
   recentRootReferences?: RecentRootReference[];
 }
 
+/** The selected contract must independently approve payment. Selection is not sponsorship approval. */
+export type TransferPayment = { type: 'self' } | {
+  type: 'paymaster'; address: Address; verificationData?: Hex;
+  verificationGas?: { execution: bigint; state: bigint };
+};
+
+/** Local draft constraints, not persistent on-chain account permissions or daily quotas. */
+export interface TransferRules {
+  allowedRecipients: readonly Address[];
+  maxValue: bigint;
+  maxFeePerGas: bigint;
+}
+
+export interface PrepareTransferParameters {
+  sender: Address;
+  transfer: { to: Address; value: bigint };
+  payment: TransferPayment;
+  rules: TransferRules;
+  maxFeePerGas: bigint;
+}
+
+export interface TransferPlan {
+  parameters: PrepareFrameParameters;
+  summary: {
+    sender: Address; recipient: Address; value: bigint; payer: Address;
+    paymentType: TransferPayment['type']; frameCount: number; maxFeePerGas: bigint;
+    rulesEnforcement: 'local-draft-only'; sponsorship: 'not-requested' | 'unconfirmed';
+  };
+}
+
 export interface FrameSigner {
   readonly address: Address;
   sign(parameters: { profile: Profile; transaction: FrameTx }): Promise<FrameTx>;
@@ -52,6 +82,7 @@ export interface WaitForFrameReceiptParameters {
 }
 
 export type FrameActions = {
+  prepareTransfer(parameters: PrepareTransferParameters): Promise<FrameTx>;
   prepareFrameTransaction(parameters: PrepareFrameParameters): Promise<FrameTx>;
   signFrameTransaction(parameters: { transaction: FrameTx; signer: FrameSigner }): Promise<FrameTx>;
   sendFrameTransaction(parameters: { transaction: FrameTx }): Promise<Hex>;

@@ -1,9 +1,11 @@
 import { createPublicClient, defineChain, http } from 'viem';
-import { frameActions } from '@framepay/sdk';
+import { frameActions, frameNetworks } from '@framepay/sdk';
 
-const gateway = 'http://localhost:14337/rpc';
+// Choose public explicitly; never infer the environment from the shared chain ID.
+const network = frameNetworks.local; // or frameNetworks.public
+const gateway = network.rpcUrl;
 const chain = defineChain({
-  id: 1337, name: 'Local frame devnet',
+  id: network.chainId, name: network.name,
   nativeCurrency: { name: 'Test Ether', symbol: 'ETH', decimals: 18 },
   rpcUrls: { default: { http: [gateway] } },
 });

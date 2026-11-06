@@ -7,6 +7,10 @@
   "workspaces": ["packages/*", "apps/*"],
   "engines": { "node": ">=20.12" },
   "scripts": {
+    "paymaster:build": "node scripts/paymaster/build.mjs",
+    "paymaster:test": "node scripts/paymaster/test.mjs",
+    "paymaster:deploy": "npm run sdk:build && node scripts/paymaster/deploy.mjs",
+    "transaction:inspect": "npm run sdk:build && node scripts/paymaster/inspect.mjs",
     "devnet:inspect": "node scripts/devnet/inspect.mjs",
     "devnet:smoke": "npm run sdk:build && node scripts/devnet/smoke.mjs",
     "sdk:bootstrap": "node scripts/link-workshop-deps.mjs",

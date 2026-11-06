@@ -10,3 +10,5 @@ vendor/
 .workshop-state.json
 *.log
 .DS_Store
+contracts/out/
+contracts/cache/

@@ -90,7 +90,7 @@ test('committed paymaster artifact matches the reviewed contract source', async 
 });
 
 
-test('FramePay devnet uses only the selected tunnel and rejects a changed genesis', async () => {
+test('Framecraft devnet uses only the selected tunnel and rejects a changed genesis', async () => {
   assert.equal(validateGateway(frameNetworks.devnet.rpcUrl, 'devnet'), true);
   for (const url of [frameNetworks.devnet.rpcUrl + '?upstream=x', 'https://other.trycloudflare.com/rpc', frameNetworks.local.rpcUrl]) assert.equal(validateGateway(url, 'devnet'), false);
   const response = await handleRpc(request('devnet'), { gateway: frameNetworks.local.rpcUrl, fetchImpl: async url => {

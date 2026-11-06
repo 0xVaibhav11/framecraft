@@ -63,7 +63,7 @@ export function toFrames(specs, budgets) {
 export function refusal(action, sender) {
   const chainId = frameNetworks.devnet.chainId;
   if (action.chainId !== chainId)
-    return `Frame transactions are sent on the FramePay devnets only (chain ${chainId}), not on chain ${action.chainId}.`;
+    return `Frame transactions are sent on the Framecraft devnets only (chain ${chainId}), not on chain ${action.chainId}.`;
   if (action.account)
     return `This frame transaction is from the frame account ${action.from}, signed by its owner ${action.account.owner}'s wallet; this page signs only with its own test key: drop --account.`;
   if (action.from.toLowerCase() !== sender.toLowerCase())

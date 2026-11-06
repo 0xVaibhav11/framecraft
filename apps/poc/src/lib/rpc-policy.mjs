@@ -48,7 +48,7 @@ export function validateRpcRequest(body) {
 export function validateGateway(value, network = "local") {
   try {
     const url = new URL(value);
-    if (network === "devnet") return url.href === "https://undertaken-decide-gathered-epic.trycloudflare.com/rpc";
+    if (network === "devnet") return url.href === "https://psi-essential-rebate-wrist.trycloudflare.com/rpc";
     if (network === "public")
       return url.href === "https://altmempoolgateway.forshtat.com/rpc";
     if (network !== "local") return false;

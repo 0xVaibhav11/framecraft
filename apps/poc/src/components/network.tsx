@@ -94,7 +94,7 @@ export function NetworkBadge() {
           network.select(event.target.value as FrameNetworkId)
         }
       >
-        <option value="devnet">FramePay devnet</option>
+        <option value="devnet">Framecraft devnet</option>
         <option value="public">Public alt-mempool devnet</option>
       </select>
       <button

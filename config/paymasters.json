@@ -33,7 +33,7 @@
   },
   "devnet": {
     "network": "devnet",
-    "gateway": "https://undertaken-decide-gathered-epic.trycloudflare.com/rpc",
+    "gateway": "https://psi-essential-rebate-wrist.trycloudflare.com/rpc",
     "chainId": 1337,
     "genesisHash": "0xcd2c67c2bd8cb5458eb2d878877668a0b86ed19fed44fbc874f3254106b97b88",
     "address": "0xF13aB1CE9463FAaF2d01b25998F83ecF297Ffc22",

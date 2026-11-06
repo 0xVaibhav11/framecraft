@@ -50,7 +50,7 @@ ${body}
 const errorText = (error: unknown) => (error instanceof Error ? error.message.slice(0, 400) : "The request failed.");
 
 export default function EvmlEditor() {
-  const [networkId, setNetworkId] = useState<FrameNetworkId>("devnet");
+  const [networkId, setNetworkId] = useState<FrameNetworkId>("public");
   const environment = frameNetworks[networkId];
   const [status, setStatus] = useState<Status>("checking");
   const [block, setBlock] = useState<bigint | null>(null);

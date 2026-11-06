@@ -27,7 +27,7 @@ test("playground forwards allowed requests once to a fixed gateway", async () =>
   const response = await handleRpc(request(), {
     fetchImpl: async (url, init) => {
       calls++;
-      assert.equal(url, "https://undertaken-decide-gathered-epic.trycloudflare.com/rpc");
+      assert.equal(url, "https://psi-essential-rebate-wrist.trycloudflare.com/rpc");
       assert.equal(init.redirect, "error");
       assert.equal(init.cache, "no-store");
       assert.deepEqual(JSON.parse(init.body), payload());

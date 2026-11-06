@@ -40,3 +40,6 @@ export function privateKeyToFrameSigner(privateKey: Hex): FrameSigner {
     },
   };
 }
+
+export { registerPasskey, signWithPasskey, parsePasskeyProof, decodeP256Signature, passkeyChallenge, passkeyFactoryArgs, passkeyWalletAbi, passkeyFactoryAbi } from './passkey.js';
+export type { PasskeyCredential, PasskeyProof, WalletCall } from './passkey.js';

@@ -8,6 +8,7 @@ vendor/
 **/tsconfig.tsbuildinfo
 contracts/out/
 contracts/cache/
+contracts/broadcast/
 contracts/aqua/out/
 contracts/aqua/cache/
 contracts/aqua/artifacts/
@@ -36,4 +37,4 @@ test-results/
 /plan.md
 .DS_Store
 
-.nx
+.nx/

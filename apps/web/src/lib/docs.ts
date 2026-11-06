@@ -13,7 +13,7 @@ export type Doc = {
 export const clientCode = `import { createPublicClient, defineChain, http } from 'viem';
 import { frameActions, frameNetworks } from '@framepay/sdk';
 
-const network = frameNetworks.local; // or frameNetworks.public
+const network = frameNetworks.devnet; // selected FramePay RPC
 
 const chain = defineChain({
   id: network.chainId,
@@ -48,7 +48,7 @@ export const docs: Doc[] = [
     notes: [
       "createFrameClient({ chain, transport, profile }) is also available as a convenience factory.",
       "The transport must point to the gateway sidecar. The gateway forwards chain reads and routes frame submissions.",
-      "frameNetworks.local and frameNetworks.public identify distinct environments with the same chain ID (1337). Keep keys, nonces, paymasters and pending transactions separate. Chain ID alone does not prevent replay between these devnets.",
+      "frameNetworks.devnet, frameNetworks.local and frameNetworks.public identify distinct environments with the same chain ID (1337). Keep keys, nonces, paymasters and pending transactions separate. Chain ID alone does not prevent replay between these devnets.",
       "The current sidecar follows the workshop’s PR #6 rules, which differ from later ERC-8421 revisions.",
     ],
   },

@@ -4,17 +4,18 @@ FramePay implements a recurring, partially fillable limit-buy position using **o
 
 The maker keeps the spend token in their wallet, approves Aqua, and ships an immutable order to Aqua. A taker supplies the asset the maker wants to buy and receives the spend token. The order enforces a per-period spending limit, lifetime budget, exchange rate and expiry. A taker must initiate each fill; this is not a scheduler or a guarantee of market liquidity.
 
-## Run the local demo
+## Run the devnet demo
 
-Prerequisites: Node 20.12+, Foundry, and the existing frame-capable local ethrex/sidecar devnet. An ordinary Anvil fork does not implement EIP-8141. The local gateway must have a connected miner or automatic bundling. The scripts use `http://127.0.0.1:14337/rpc`, chain 1337, and the recorded local genesis.
+Prerequisites: Node 20.12+, Foundry, and the configured frame-capable devnet. An ordinary Anvil fork does not implement EIP-8141. The scripts default to `https://undertaken-decide-gathered-epic.trycloudflare.com/rpc`, chain 1337, and its pinned genesis. See the [quantum wallet guide](quantum-wallet.md#reproduce) to build the ETHFalcon signer required by the contract tests.
 
 ```sh
 npm run aqua:bootstrap
+npm run quantum:build
 npm run aqua:test
 npm run aqua:build
 
-# Only needed if config/paymasters.json has no deployment for the current local genesis.
-npm run paymaster:deploy -- --network local
+# Only needed if config/paymasters.json has no deployment for the current devnet genesis.
+npm run paymaster:deploy -- --network devnet
 
 npm run aqua:demo
 ```
@@ -35,9 +36,9 @@ The demo creates disposable maker and taker accounts, requests faucet ETH only f
 | Carryover | None |
 | Fills | 6 + 4 fpUSD in one period, 10 in the next, 5 in a later period |
 | Taker ETH | Zero throughout the swaps |
-| Gas payer | Recorded local FramePay test paymaster |
+| Gas payer | Recorded FramePay devnet test paymaster |
 
-It waits for real local block timestamps between periods. No timestamp overrides, balance injection or replacement protocol contracts are used for the live demo. The Foundry tests separately use time manipulation to cover boundaries and failure cases.
+It waits for real devnet block timestamps between periods. No timestamp overrides, balance injection or replacement protocol contracts are used for the live demo. The Foundry tests separately use time manipulation to cover boundaries and failure cases.
 
 The script checks each frame receipt, transaction type `0x06`, official `Swapped` events, recurring-buy accounting events, both parties' ERC-20 balance changes, total spending, and the taker's zero ETH balance. Read-only `eth_call` probes check that further fills fail when the period or total budget is exhausted. These probes are distinguished from the mined successful fills in the evidence.
 
@@ -78,7 +79,7 @@ Accounting is updated before settlement and rolls back if a token transfer or ta
 
 ## Evidence and resuming
 
-`evidence/aqua/local-*.json` contains public addresses, source fingerprints, transaction hashes, receipts, events and balance observations. Private keys remain in ignored `.framepay/aqua/*.key` files with restrictive permissions.
+Ignored `.framepay/reports/aqua/*.json` contains public addresses, source fingerprints, transaction hashes, receipts, events and balance observations. Private keys remain in ignored `.framepay/aqua/devnet/*.key` files with restrictive permissions.
 
 The runner journals each expected transaction hash before a single broadcast. Re-running `npm run aqua:demo` resumes by inspecting saved hashes. It does not blindly resend an uncertain transaction, change nonces, replace keys or redeploy completed steps. A verified run prints its existing result. A changed genesis, changed contract artifacts or expired unfinished position stops the run for review. Preserve the journal and evidence before deliberately starting a separate demo.
 
@@ -88,35 +89,15 @@ For a new independent demo (new accounts, deployments and position), choose a ne
 npm run aqua:demo -- --run finals-2
 ```
 
-The new journal and keys live under `.framepay/aqua/runs/finals-2/`; the previous run remains intact. Reuse that name to resume it.
+The new journal and keys live under `.framepay/aqua/devnet/runs/finals-2/`; the previous run remains intact. Reuse that name to resume it.
 
 For an individual fill:
 
 ```sh
-npm run transaction:inspect -- local 0x<fill-hash>
+npm run transaction:inspect -- devnet 0x<fill-hash>
 ```
 
-The local explorer URL is `http://localhost:5173/tx/<fill-hash>`. Explorer admission history is temporary; the receipt and token-transfer logs are the durable on-chain evidence. Paymaster balance observations can include concurrent use of the open sponsor, so the evidence does not attribute its entire balance decrease exclusively to these swaps.
-
-## Verified local run
-
-The [recorded run](../evidence/aqua/local-1793961624863.json) completed on November 6, 2026:
-
-| Contract | Address |
-| --- | --- |
-| Official Aqua | `0x65a187Ba645d089E18581BA3b9F3F18F06ad6B3f` |
-| FramePayRecurringSwapVM | `0x67d2F5b370F952305A2688e0AB79bD61796D105A` |
-| fpUSD | `0xE7Fc49e7F3814d660AC95a8C3773F1c3D21a78f5` |
-| fpASSET | `0x123Db5b7b3e3ceE236D2CB68a0011ed24C9e2E1A` |
-
-| Fill | Period | Block | Explorer |
-| --- | --- | --- | --- |
-| 6 fpUSD → 0.6 fpASSET | 0 | 2389 | [Transaction](http://localhost:5173/tx/0x89a2b64f2453128bfe60d378ba7922ab0a7f83ef8a355a4cdeb3f103bd98936a) |
-| 4 fpUSD → 0.4 fpASSET | 0 | 2390 | [Transaction](http://localhost:5173/tx/0x05b37fb2c1d550a72131ac279f4d38035c812c543b3ec19fac6a655610df6072) |
-| 10 fpUSD → 1 fpASSET | 1 | 2399 | [Transaction](http://localhost:5173/tx/0xddddda3cff8bde9839df55d90083429f9061dc8a477ed4bbe5727f20ac30e53d) |
-| 5 fpUSD → 0.5 fpASSET | 2 | 2409 | [Transaction](http://localhost:5173/tx/0x9d961b4d46fa5756ebf4ec535e02e3bf3721e8676ebf93c6352e2d24e382c848) |
-
-The arrows describe the maker's exchange. The taker supplied 2.5 fpASSET and received 25 fpUSD. Every fill has three successful frame receipts; the taker held zero ETH before and after. Period and total exhaustion probes both returned `CapacityExceeded`. These addresses and links belong to the recorded local genesis and become historical if that chain resets.
+Use the app’s Inspect receipt action or the transaction inspection command for FramePay devnet. Explorer admission history is temporary; the receipt and token-transfer logs are the durable on-chain evidence. Paymaster balance observations can include concurrent use of the open sponsor, so the evidence does not attribute its entire balance decrease exclusively to these swaps.
 
 ## Official sources
 
@@ -124,4 +105,4 @@ The arrows describe the maker's exchange. The taker supplied 2.5 fpASSET and rec
 - [Aqua](https://github.com/1inch/aqua): official npm release `@1inch/aqua@1.0.2-rc.2`, deployed without source changes.
 - Exact Solidity source-tree fingerprints and dependency versions are in `config/aqua-sources.json`. Upstream license files remain in the downloaded packages and checkout; FramePay does not rewrite their source or license headers.
 
-This demo provides a custom Aqua/SwapVM position, executable contract tests and real local ERC-20 settlement through frame transactions—the technical evidence described in the supplied prize requirements. Final prize eligibility remains the judges' decision.
+This demo provides a custom Aqua/SwapVM position, executable contract tests and real devnet ERC-20 settlement through frame transactions—the technical evidence described in the supplied prize requirements. Final prize eligibility remains the judges' decision.

@@ -37,12 +37,11 @@ export default function Quickstart() {
           </p>
           <CodeBlock
             title="Terminal · FramePay directory"
-            code={"npm run sdk:bootstrap\nnpm test\nnpm run devnet:inspect"}
+            code={"npm run sdk:bootstrap\nnpm test"}
           />
           <p>
-            The local gateway should respond on port <code>14337</code>, with
-            chain ID <code>1337</code>. A new local chain must reach its
-            configured Hegota activation before it can execute frames.
+            The app defaults to the configured Cloudflare gateway on chain <code>1337</code>.
+            Local Docker is not required. Network identity includes the genesis hash.
           </p>
         </section>
         <section className="section-block" id="client">
@@ -53,19 +52,18 @@ export default function Quickstart() {
         </section>
         <section className="section-block" id="run">
           <h2>
-            <span className="inline-number">03</span>Run the complete smoke flow
+            <span className="inline-number">03</span>Open the DeFi app
           </h2>
           <p>
-            The smoke runner uses the existing workshop participant, preserves
-            its progress, and records the expected transaction hash before
-            submission.
+            Build the ETHFalcon browser signer using Emscripten 3.1.74,
+            then start the app. The configured devnet already has public
+            deployment records for the wallet factory, paymaster and Aqua market.
           </p>
-          <CodeBlock title="Terminal" code="npm run devnet:smoke" />
+          <CodeBlock title="Terminal" code={"npm run aqua:bootstrap\nnpm run quantum:build\nnpm run web:bootstrap\nnpm run web:dev"} />
           <p>
-            It checks the transaction type, both frame receipts, and admission
-            evidence. Evidence files are saved under{" "}
-            <code>evidence/milestone-1/</code>. A successful offline test is
-            separate from a successful devnet transaction.
+            Open <Link href="/app">the app</Link>, create a quantum wallet,
+            deploy it, claim test tokens and review a swap or transfer.
+            Each submitted action checks its receipt and every frame result.
           </p>
         </section>
         <section className="section-block" id="browser">
@@ -73,12 +71,12 @@ export default function Quickstart() {
             <span className="inline-number">04</span>Try the browser playground
           </h2>
           <p>
-            Select Local devnet or Public alt-mempool devnet in the top bar.
+            Select FramePay devnet or Public alt-mempool devnet in the top bar.
             Both use chain ID 1337 but have separate histories, accounts and
-            deployments. Public mode does not require your local Docker devnet.
+            deployments. Neither selection requires local Docker.
           </p>
           <p>
-            Create a disposable account in this tab, fund it using the local
+            Create a disposable account in this tab, fund it using the devnet
             faucet, and walk through the SDK one action at a time. Choose
             self-payment or request a deployed paymaster, set draft limits, then
             review the generated frames before signing. The account uses
@@ -100,7 +98,7 @@ export default function Quickstart() {
           <CodeBlock
             title="Terminal · choose a network"
             code={
-              "npm run paymaster:deploy -- --network public\n# Or use your running local devnet:\nnpm run paymaster:deploy -- --network local"
+              "npm run paymaster:deploy -- --network devnet\n# Or use the separate public alt-mempool devnet:\nnpm run paymaster:deploy -- --network public"
             }
           />
           <p>

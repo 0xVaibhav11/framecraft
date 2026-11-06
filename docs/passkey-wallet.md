@@ -1,4 +1,6 @@
-# Passkey smart wallet
+# Legacy P-256 passkey wallet
+
+New accounts use the separate [ETHFalcon quantum wallet](quantum-wallet.md). This page documents existing P-256 wallets and their previously recorded demo; it does not describe the new wallet’s authorization.
 
 The DeFi app can create a contract wallet controlled by a WebAuthn ES256 passkey. The wallet verifies the signature onchain before executing token transfers, swaps or recurring-position operations. The local devnet's native P-256 precompile at `0x100` was verified with a known valid signature; OpenZeppelin's verifier also supports a Solidity fallback.
 
@@ -47,7 +49,7 @@ The SDK uses the authenticator's exact `clientDataJSON` bytes and strictly decod
 
 All application calls in one wallet execution succeed together or revert together, including approvals and the wallet nonce. A reentrancy guard blocks nested execution. A relayer may submit an already-signed batch but cannot change its destination, value or calldata. Ordinary EOA test-account frames retain their existing separate-frame rollback behavior.
 
-Passkey authentication is P-256, **not post-quantum authorization**. The project has not implemented the planned PQ account path. Authenticator attestation is not checked, so successful verification proves key possession and signed flags, not a particular hardware model.
+Passkey authentication is P-256, **not post-quantum authorization**. The separate quantum wallet uses ETHFalcon as its sole onchain spending authority. Authenticator attestation is not checked, so successful verification proves key possession and signed flags, not a particular hardware model.
 
 ## Setup and implementation
 
@@ -66,13 +68,6 @@ The deployer checks pinned OpenZeppelin 5.6.1 sources and build artifacts. It de
 - App account, review and submission integration: `apps/web/src/components/defi/use-defi.ts`.
 - Wallet tests: `contracts/aqua/test/PasskeyWallet.t.sol`; SDK tests: `tests/passkey.test.mjs`.
 
-## Verification evidence
+## Verification
 
-[Browser execution evidence](../evidence/passkey/local-browser-1793966812806.json) contains four successful sponsored frame receipts: wallet creation, token claim, swap and transfer. The contract wallet ended with **1,005 fpUSD, 99 fpASSET, zero ETH and wallet nonce 3**. [Factory evidence](../evidence/aqua/local-1793965986247.json) records its deployment and native P-256 probe.
-
-The browser test used Chrome's virtual CTAP2 authenticator with a resident ES256 credential and user verification. It exercised real WebAuthn browser APIs and real onchain signature verification; it was not a physical Touch ID/device test. Contract tests use real P-256 signatures and cover replay, altered calls, expiry, domain separation, RP/origin checks, user-verification flags, malformed proofs, token rollback, native transfers and deterministic deployment. Run `npm run aqua:test`, `npm test` and `npm run web:build` to reproduce the local checks.
-
-
-[The extended browser run](../evidence/passkey/local-browser-1793967431711.json) records six successful frame transactions, including position creation and cancellation after replacing the disposable relay key. Receipts identify two different relayer addresses while the same passkey wallet advances to nonce 5. Missing user verification was rejected before broadcast, and metadata export/import restored the wallet without exporting a private key.
-
-With the web app and local devnet running, use `npm run passkey:demo` to repeat this browser flow. It needs Playwright (installed locally or in the configured sibling workshop) and Chrome/Chromium. On macOS it defaults to installed Google Chrome; set `FRAMEPAY_BROWSER_EXECUTABLE` for another executable. This creates a disposable virtual passkey, consumes local test sponsorship/liquidity, and saves public browser evidence/screenshots under `.framepay/passkey-browser/`. It never reads or exports the authenticator's private key. The virtual passkey is discarded when the browser closes, so its test wallet cannot subsequently be controlled.
+The legacy wallet remains covered by the Solidity and SDK tests. New browser demos use the PRF-derived ETHFalcon wallet on FramePay devnet. Generated reports and screenshots are stored under ignored `.framepay/`; historical run dumps are not tracked.

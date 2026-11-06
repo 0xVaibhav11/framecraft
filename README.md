@@ -4,11 +4,11 @@ A developer SDK and reference DeFi app designed to bring post-quantum vault auth
 
 The project lets applications offer users a smart-account vault that can authorize actions with a post-quantum key and transfer or trade tokens without holding ETH for gas. An application-funded paymaster covers the network gas cost.
 
-**Status:** The viem SDK, playground, bounded test paymaster, recurring Aqua/SwapVM position and reference DeFi app are implemented on the local frame devnet. The app supports passkey smart wallets with onchain WebAuthn verification, swaps, sponsored transfers, editable transaction assertions, and creating/cancelling recurring positions. Browser verification completed five real frame transactions from an account holding zero ETH; receipts and token transfers are recorded in `evidence/defi/`. PQ vault authorization and token-fee reimbursement remain planned.
+**Status:** The app defaults to FramePay devnet at `https://undertaken-decide-gathered-epic.trycloudflare.com/rpc` (chain 1337, with its own genesis). It supports PRF-derived ETHFalcon wallets, Aqua/SwapVM swaps, sponsored transfers and recurring positions. Deployment addresses are in `config/`. Generated run reports stay in ignored `.framepay/reports/`; the repository does not track evidence dumps. Token-fee reimbursement remains planned.
 
-Open **[the DeFi app](http://localhost:3000/app)** with `npm run web:dev`. Create a passkey wallet (or disposable test account), get test tokens, then use **Swap**, **Transfer**, **Positions**, and **Rules**. See [the app guide](docs/defi-app.md) for contract setup and the assertion model. The app uses local test assets and supports both passkey smart wallets and disposable browser test accounts. See [the passkey wallet guide](docs/passkey-wallet.md) for wallet creation and onchain WebAuthn verification.
+Open **[the DeFi app](http://localhost:3000/app)** with `npm run web:dev`. Create a quantum wallet with a PRF-capable passkey (or a disposable test account), get test tokens, then use **Swap**, **Transfer**, **Positions**, and **Rules**. See [the app guide](docs/defi-app.md) for contract setup and the assertion model. The app uses devnet test assets and supports both passkey smart wallets and disposable browser test accounts. See [the quantum wallet guide](docs/quantum-wallet.md) for ETHFalcon setup and PRF key derivation, or [the legacy passkey wallet guide](docs/passkey-wallet.md) for existing P-256 accounts.
 
-Run the contract tests with `npm run aqua:test` and the local swap demo with `npm run aqua:demo` after [Aqua setup](docs/aqua-recurring-buy.md). The guide includes source pins, deployment details, strategy rules and evidence links.
+Run the contract tests with `npm run aqua:test` and the swap demo with `npm run aqua:demo` after [Aqua setup](docs/aqua-recurring-buy.md). The guide includes source pins, deployment details, strategy rules and verification commands.
 
 ## What the kit provides
 
@@ -17,7 +17,7 @@ Run the contract tests with `npm run aqua:test` and the local swap demo with `np
 - **Atomic application operations:** same-chain action groups designed to complete together or revert their application state changes.
 - **Aqua/SwapVM integration:** a recurring, partially fillable buy position with price, spending, and expiry limits.
 - **Developer SDK:** a shared interface for preparing, signing, simulating, submitting, and tracking frame transactions.
-- **Developer documentation and playground:** searchable API guides and an interactive prepare, sign, submit, and inspect workflow for local frame transactions.
+- **Developer documentation and playground:** searchable API guides and an interactive prepare, sign, submit, and inspect workflow for devnet frame transactions.
 - **Transfer composer:** generate EOA ETH-transfer frames from user choices, check local draft limits, and review the requested gas payer before signing. A selected paymaster must independently approve sponsorship.
 - **Reference vault app:** a user-facing demonstration of the SDK's transfer and trading flows.
 
@@ -27,4 +27,4 @@ The vault holds assets and enforces authorization. EIP-8141 supplies the native 
 
 Post-quantum protection applies to the intended vault authorization path. It does not itself encrypt pending transactions.
 
-Implementation details, tasks, decisions, and the development record are maintained in [plan.md](plan.md).
+Implementation and setup guides: [DeFi app](docs/defi-app.md), [recurring swaps](docs/aqua-recurring-buy.md), and [ETHFalcon wallets](docs/quantum-wallet.md).

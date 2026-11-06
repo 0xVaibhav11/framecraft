@@ -31,34 +31,35 @@ Rules persist in this browser for the selected deployment. These are editable pr
 
 Token approvals and application calls can occupy separate frames. A failed application frame can leave an earlier approval in place. Approvals created by the app use the reviewed amount. Multiple recurring positions share the maker's Aqua allowance and token balance; creating a position updates that shared allowance to the new position's budget.
 
-## Local setup
+## Devnet setup
 
-Start the existing frame devnet and complete the SDK/web dependency setup described in the repository quickstart. Then run:
+The default RPC is the configured Cloudflare devnet. Complete the SDK/web dependency setup in the quickstart, then run:
 
 ```sh
 npm run aqua:bootstrap
 npm run aqua:build
-npm run paymaster:deploy -- --network local
-npm run defi:deploy
+npm run paymaster:deploy -- --network devnet
+npm run defi:deploy -- --network devnet
+npm run quantum:build
+npm run quantum:deploy -- --network devnet
 npm run web:dev
 ```
 
-`defi:deploy` deploys the official Aqua contract, the customized SwapVM router, the transfer guard, and two claimable test tokens. It seeds the community position and writes `config/defi.json`. The private deployment journal is resumable; public deployment evidence is written under `evidence/aqua/`. See [the Aqua guide](aqua-recurring-buy.md) for source pins and the canonical frame path needed by the large router deployment. Normal app transactions use the standard alternative mempool.
+`defi:deploy` deploys the official Aqua contract, the customized SwapVM router, the transfer guard, and two claimable test tokens. It seeds the community position and writes `config/defi.json`. The private deployment journal is resumable; public deployment evidence is written under ignored `.framepay/reports/aqua/`. See [the Aqua guide](aqua-recurring-buy.md) for source pins and the canonical frame path needed by the large router deployment. Normal app transactions use the standard alternative mempool.
 
-The app checks the genesis and deployed code hashes, including the paymaster. Local and public networks both use chain ID 1337, so chain ID alone is insufficient. No public app deployment is configured. After a local chain reset, redeploy and regenerate the configuration before using the app.
+The app checks the genesis and deployed code hashes, including the paymaster. The configured environments share chain ID 1337, so chain ID alone is insufficient. The Cloudflare network has its own deployment records and account storage. A changed genesis requires reviewing and regenerating those records.
 
 The `.mjs` files are JavaScript modules run by Node.js for setup, deployment, and verification. The onchain logic is Solidity; the screen is React/TypeScript.
 
 ## Account and persistence
 
-Passkey wallets keep their assets in a contract and verify each WebAuthn approval onchain. Only public wallet metadata is persisted or exported; the passkey provider manages the private key. The browser also keeps a replaceable relay key to submit sponsored envelopes. See [authorization and recovery details](passkey-wallet.md).
+Quantum wallets hold assets in a contract and verify only ETHFalcon signatures onchain. Passkey PRF regenerates the Falcon key in browser memory; only public wallet metadata is persisted or exported. The browser also keeps a replaceable relay key to submit sponsored envelopes. See [authorization and recovery details](quantum-wallet.md).
 
-The optional disposable-account flow creates a SECP256K1 test account and keeps its private key in this tab's `sessionStorage`. Reloading retains it; closing the tab can remove it. **Export test account** downloads a private-key file; **Import test account** restores a matching local-deployment export. Keep exports private. Positions, public transaction hashes, and rules use `localStorage`. The key is not sent to the app server. This is a local test account flow; PQ vault authorization and injected-wallet frame signing remain future integrations.
+The optional disposable-account flow creates a SECP256K1 test account and keeps its private key in this tab's `sessionStorage`. Reloading retains it; closing the tab can remove it. **Export test account** downloads a private-key file; **Import test account** restores a matching network-and-genesis export. Keep exports private. Positions, public transaction hashes, and rules use `localStorage`. The key is not sent to the app server. This is a disposable test account flow. Use a quantum wallet for ETHFalcon authorization; injected-wallet frame signing remains a future integration.
 
 ## Verification
 
 - Browser execution: sponsored token claim, swap, guarded token transfer, position creation and cancellation; five successful type-`0x06` receipts with every frame successful.
 - Browser assertions: an oversized transfer was rejected before submission; rules and account survived a reload; the 390-pixel layout had no horizontal overflow or runtime errors.
 - Final test-account balances: **1,005 fpUSD, 99 fpASSET, 0 ETH**, after receiving 10 fpUSD for 1 fpASSET and transferring 5 fpUSD.
-- [Public browser transaction evidence](../evidence/defi/local-browser-1793963889398.json) includes receipts and token-transfer logs. [App deployment evidence](../evidence/aqua/local-1793962661428.json) records setup.
 - `npm test` verifies SDK behavior, rule validation, RPC policy and proxy handling. `npm run aqua:test` verifies recurring-position limits and transfer-guard assertions, including rollback after a failed recipient-balance check. `npm run web:build` builds the app.

@@ -47,14 +47,6 @@ try {
  await page.getByRole('button', { name:'Confirm & send', exact:true }).click();
  await page.getByText('Confirm transfer confirmed. All frames succeeded.', { exact:true }).waitFor({timeout:130000});
  console.log('Transfer from passkey wallet verified.');
- const before = await page.evaluate(() => JSON.parse(Object.entries(localStorage).find(([k]) => k.endsWith(':activity'))[1]).length);
- await cdp.send('WebAuthn.setUserVerified', {authenticatorId, isUserVerified:false});
- await page.getByRole('button', { name:'Review transfer', exact:true }).click();
- await page.getByRole('button', { name:'Confirm & send', exact:true }).click();
- await page.getByRole('dialog').waitFor({state:'hidden',timeout:65000});
- if(await page.evaluate(() => JSON.parse(Object.entries(localStorage).find(([k]) => k.endsWith(':activity'))[1]).length)!==before) throw new Error('Missing UV created a transaction.');
- console.log('Missing user verification blocked before broadcast.');
- await cdp.send('WebAuthn.setUserVerified', {authenticatorId, isUserVerified:true});
  // Losing the relay key must not lose control of a passkey wallet.
  await page.evaluate(() => { for(const key of Object.keys(sessionStorage)) if(key.endsWith(':key')) sessionStorage.removeItem(key); });
  await page.reload();
@@ -82,6 +74,16 @@ try {
  await page.getByRole('navigation', {name:'DeFi app'}).getByRole('button', { name:'Swap', exact:true }).click();
  await page.waitForTimeout(1000);
  console.log('Public metadata export/import restored the wallet.');
+ // Run the deliberately denied verification last so the virtual authenticator's failure state cannot affect recovery checks.
+ await page.getByRole('navigation', {name:'DeFi app'}).getByRole('button', { name:'Transfer', exact:true }).click();
+ await page.getByLabel('Recipient', {exact:false}).fill('0x000000000000000000000000000000000000b0b0');
+ const before = await page.evaluate(() => JSON.parse(Object.entries(localStorage).find(([k]) => k.endsWith(':activity'))[1]).length);
+ await cdp.send('WebAuthn.setUserVerified', {authenticatorId, isUserVerified:false});
+ await page.getByRole('button', { name:'Review transfer', exact:true }).click();
+ await page.getByRole('button', { name:'Confirm & send', exact:true }).click();
+ await page.getByRole('dialog').waitFor({state:'hidden',timeout:65000});
+ if(await page.evaluate(() => JSON.parse(Object.entries(localStorage).find(([k]) => k.endsWith(':activity'))[1]).length)!==before) throw new Error('Missing UV created a transaction.');
+ console.log('Missing user verification blocked before broadcast.');
  const data = await page.evaluate(() => ({wallet: JSON.parse(Object.entries(localStorage).find(([k]) => k.endsWith(':passkey'))[1]), activity: JSON.parse(Object.entries(localStorage).find(([k]) => k.endsWith(':activity'))[1])}));
  await writeFile(resolve(output, 'browser-evidence.json'), JSON.stringify({ observedAt:new Date().toISOString(), authenticator:'Chrome CDP virtual CTAP2.1 with PRF and required user verification', ...data },null,2));
  await page.screenshot({path:resolve(output, 'app.png'),fullPage:true});

@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build all workspaces
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      HUSKY: "0"
+      NX_DAEMON: "false"
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: .bun-version
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: v1.5.0
+      - run: bun install --frozen-lockfile
+      - run: bun run check:push
+      - run: bun run contracts:test

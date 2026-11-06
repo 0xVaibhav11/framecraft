@@ -5,9 +5,25 @@
   "type": "module",
   "description": "Experimental viem actions for the ethrex EIP-8141 workshop profile",
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" }
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
   },
-  "files": ["dist"],
-  "dependencies": { "@forshtat/hegota-support": "0.0.1" },
-  "peerDependencies": { "viem": "^2.57.0" }
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@forshtat/hegota-support": "0.0.1"
+  },
+  "peerDependencies": {
+    "viem": "^2.57.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "typescript": "7.0.2"
+  }
 }

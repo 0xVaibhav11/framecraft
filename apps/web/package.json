@@ -6,10 +6,11 @@
   "scripts": {
     "dev": "next dev --webpack --hostname 127.0.0.1",
     "build": "next build --webpack",
-    "start": "next start --hostname 127.0.0.1"
+    "start": "next start --hostname 127.0.0.1",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@framepay/sdk": "0.0.0",
+    "@framepay/sdk": "workspace:*",
     "next": "16.3.1",
     "react": "19.2.8",
     "react-dom": "19.2.8",

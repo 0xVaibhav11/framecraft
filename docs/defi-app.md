@@ -4,7 +4,7 @@ Open **http://localhost:3000/app**. The app performs real type-`0x06` transactio
 
 ## Try it
 
-1. Select **Local devnet**, then **Create test account**.
+1. Select **Local devnet**, then **Create passkey wallet** and **Deploy wallet**, or choose **Use a disposable test account**. See [the passkey guide](passkey-wallet.md).
 2. Click **Get test tokens** and confirm the review. This sponsored transaction claims 1,000 fpUSD and 100 fpASSET. The account can hold zero ETH.
 3. In **Swap**, choose a liquidity position and the exact fpUSD amount to receive. Review the fpASSET input, assertions, and gas payer, then confirm.
 4. In **Transfer**, enter a different recipient and an fpUSD amount. Keep the paymaster selected to sponsor gas. ETH transfers are also supported; the account must own the ETH it sends.
@@ -51,7 +51,9 @@ The `.mjs` files are JavaScript modules run by Node.js for setup, deployment, an
 
 ## Account and persistence
 
-The app creates a SECP256K1 test account and keeps its private key in this tab's `sessionStorage`. Reloading retains it; closing the tab can remove it. **Export test account** downloads a private-key file; **Import test account** restores a matching local-deployment export. Keep exports private. Positions, public transaction hashes, and rules use `localStorage`. The key is not sent to the app server. This is a local test account flow; PQ vault authorization and browser-wallet signing remain future integrations.
+Passkey wallets keep their assets in a contract and verify each WebAuthn approval onchain. Only public wallet metadata is persisted or exported; the passkey provider manages the private key. The browser also keeps a replaceable relay key to submit sponsored envelopes. See [authorization and recovery details](passkey-wallet.md).
+
+The optional disposable-account flow creates a SECP256K1 test account and keeps its private key in this tab's `sessionStorage`. Reloading retains it; closing the tab can remove it. **Export test account** downloads a private-key file; **Import test account** restores a matching local-deployment export. Keep exports private. Positions, public transaction hashes, and rules use `localStorage`. The key is not sent to the app server. This is a local test account flow; PQ vault authorization and injected-wallet frame signing remain future integrations.
 
 ## Verification
 

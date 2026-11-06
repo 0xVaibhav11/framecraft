@@ -8,6 +8,16 @@ This document records how we intend to build the project, why we choose each com
 
 ## Build record
 
+### November 6, 2026 — passkey smart wallet with onchain WebAuthn verification
+
+Added an immutable passkey wallet and CREATE2 factory using pinned OpenZeppelin 5.6.1 WebAuthn/P256. Browser registration stores only public credential metadata; transfers, swaps and recurring-position calls require fresh passkey assertions. The wallet binds authorization to the ordered calls, chain, wallet, genesis domain, nonce and deadline, requires presence and user verification, and checks RP ID/origin. A separate disposable EOA relays sponsored frame envelopes; passkey verification occurs inside wallet execution. This does not yet replace the frame envelope's native VERIFY signer.
+
+Verified native P-256 support on the local devnet. Chrome's virtual authenticator created a resident ES256 passkey and executed four successful sponsored frame transactions: wallet deployment, token claim, swap and transfer. The wallet held 1,005 fpUSD, 99 fpASSET and zero ETH with nonce 3 afterward. All nine new wallet contract tests and six SDK tests passed, including real signature checks and replay/alteration rejection. See [the passkey guide](docs/passkey-wallet.md) and [receipts](evidence/passkey/local-browser-1793966812806.json).
+
+An extended six-transaction browser run also verified missing-UV rejection, public metadata export/import, and position creation/cancellation after replacing the relay key; receipts show two distinct relay senders with wallet nonce 5. The flow is reproducible with `npm run passkey:demo`.
+
+Single-key recovery/rotation, physical-authenticator testing and native passkey frame verification remain follow-up work. P-256 passkeys do not implement the planned PQ authorization.
+
 ### November 6, 2026 — local DeFi app and editable assertions
 
 Implemented `/app` with sponsored Aqua swaps, guarded fpUSD/ETH transfers, editable browser rules, recurring-position creation/cancellation, import/share, explicit reviews and receipt inspection. Added claimable local tokens and a transfer guard with amount, deadline and recipient-balance assertions. The app verifies genesis and contract code before preparing transactions, retains public hashes before broadcast, and keeps its test account in tab session storage with explicit export/import.

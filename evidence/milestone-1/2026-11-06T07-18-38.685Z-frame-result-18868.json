@@ -1,0 +1,281 @@
+{
+  "schemaVersion": 1,
+  "kind": "frame-smoke",
+  "observedAt": "2026-11-06T07:18:38.598Z",
+  "gatewayUrl": "http://localhost:14337/rpc",
+  "chainId": 1337,
+  "profile": "ethrex-eip8141-tracer",
+  "status": "not-submitted",
+  "authorization": "SECP256K1 baseline; not post-quantum",
+  "pins": {
+    "verified": true,
+    "lock": {
+      "schemaVersion": 1,
+      "description": "Source and installed codec fingerprints captured locally. These do not establish live container versions or completed frame/Aqua execution.",
+      "repositories": {
+        "workshop": {
+          "path": ".",
+          "url": "https://github.com/forshtat/mempool-workshop.git",
+          "commit": "bcfe02a196ca97b6fb0d1044db9d0b4c673831fc"
+        },
+        "sidecar": {
+          "path": "mempool-workshop-sidecar",
+          "url": "https://github.com/forshtat/mempool-workshop-sidecar.git",
+          "commit": "2e22ff0a2898e69ea4bf5275bce1be8581a8582a"
+        }
+      },
+      "installedPackages": {
+        "@forshtat/hegota-support": "0.0.1",
+        "viem": "2.57.11"
+      },
+      "client": {
+        "sourceCommitReportedByWorkshop": "9aa3645d795945c64400f41a70aace0edfa7f383",
+        "runtimeImageDigest": null,
+        "runtimeVerified": false
+      },
+      "rules": {
+        "repository": "https://github.com/forshtat/ERCs",
+        "pullRequest": 6,
+        "commitReportedByWorkshop": "74a868cd4fb173c00015235fec69d6d748d781cd",
+        "equivalentToLatestERC8421": false
+      },
+      "sha256": {
+        "AGENTS.md": "8ffb28fa583f4700a2abc33e07826de076df004eb4c3c53a4f985f2f65f934e7",
+        "README.md": "1ee9eb88f283d0aab267fec49b54abafd3fe7fbc823f088cbdc4259d0e171f7e",
+        "LOCAL_DEVNET.md": "e540e4eead5f220c5d79f666d852e471830be2d5be9df43f8d57076391394ddf",
+        "package.json": "d7ba931a63718497d5a8f5cb194c25defc81888bf3d8c14b2a5d587fbae5e7a3",
+        "yarn.lock": "beab333c4d3d9ba886953c6debd629c2b2b047086462d160df519933683455d8",
+        "workshop.config.json5": "3eaa589295c7339900192666bbae0dc1fd6d22b92a8cd96397f1b50dbac3b930",
+        "src/lib/frameTx/build.ts": "04c0a31baf516721fc8c3b73f50edac914bacc5833fdf890fb866cf34171a9f7",
+        "src/lib/frameTx/send.ts": "6f72faba05551243e4575b98c3d8c24290ecfaebca3f964c2dedf3f4f6cad1c3",
+        "src/lib/frameTx/profile.ts": "736cc7b3b96e56a4c0295eae7f48582223a158837bd24660db434bf970f0bfef",
+        "src/steps/step_2_tx_first.ts": "e3a830e7196f9b2bf96c09d74bc08a3546abce873f4311e69fd504c75e61ffdc",
+        "mempool-workshop-sidecar/deploy/local/start.mjs": "71dbf6ffa23eae4f610fcbe871317bcbe20b8ac1703d3ef9715be35af3ec8417",
+        "mempool-workshop-sidecar/deploy/local/setup.mjs": "bc98fda71c19a9b369a1254446feb35a7c3315ea577b8bf4bdeaac6326b73b96",
+        "mempool-workshop-sidecar/deploy/local/compose.json": "62ee313688bf41544d78045c27fdd6e59aa15f61475ceaf159605fa91a6dd07d",
+        "mempool-workshop-sidecar/bun.lock": "dab2a961c71cb26f062eb7013b174094807e3dc277a622ed8d13a8134e93caa5",
+        "node_modules/@forshtat/hegota-support/package.json": "4b1bdec9d990fa318fe5bb1995e73c4f55090c2097c098c4b8e8429364003ff4",
+        "node_modules/viem/package.json": "e6d38e6cb7661f13667fdf470937031a3d14f82f4b4f0e7904896a257ac8414a",
+        "node_modules/@forshtat/hegota-support/dist/profiles/ethrex-eip8141-tracer.js": "221ebba1651ddfad17d5e9f6c4f9274a658a342651ab9822bf775e355d057001",
+        "node_modules/@forshtat/hegota-support/dist/profiles/ethrex-hegota-devnet.js": "789726b531be9585d4800f14920a014aeef278820fce74fe95bf8630c358190d",
+        "node_modules/@forshtat/hegota-support/dist/profiles/index.js": "f6c9ed8926098009ed973b9c56d1a27b89a9ffd6acaf22f2d081243fd92260da",
+        "node_modules/@forshtat/hegota-support/dist/profiles/registry.js": "b42affad5ea551e19e5f9133561507b521a03ac13aa27d99323d6b01ebb6e0bb",
+        "node_modules/@forshtat/hegota-support/dist/profiles/types.js": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+        "node_modules/@forshtat/hegota-support/dist/rpc/client.js": "061e9611de7c1abb50ae25a61152fe77028b1a678b862616a12f0cf03621ea2b",
+        "node_modules/@forshtat/hegota-support/dist/rpc/index.js": "c1bfd6d691776a6de298f6e112e4c9902686920f604446714b5536ec097f3a40",
+        "node_modules/@forshtat/hegota-support/dist/rpc/rejection.js": "fa46556b98c16723065e91e2adeb7f54201c21c10e0db4760d7cc06ed7a6ebf9",
+        "node_modules/@forshtat/hegota-support/dist/rpc/wire.js": "b275e38eacd45e6d24f0cef9b0d5fe4f8d3400014445c8d90a15bbd3c216fa3c",
+        "node_modules/@forshtat/hegota-support/dist/solidity/index.js": "64f161e53170664e3f5ff05612c41d0f7bfa3fe402a655fafb15e7534d75cd2b",
+        "node_modules/@forshtat/hegota-support/dist/tx/build.js": "4af7be777cc1d1ac8272e09f329e0a3170bf4e4c84a5354c28bb3b86d5c07849",
+        "node_modules/@forshtat/hegota-support/dist/tx/codec.js": "46b404bcc80195a1e64dfb7920a66146ae0e61e7e58591d92274d19ee700e0c2",
+        "node_modules/@forshtat/hegota-support/dist/tx/index.js": "c699ef123fc9405dcd493c025510a47311c97e68ef256449c659e31b6bc4cd91",
+        "node_modules/@forshtat/hegota-support/dist/tx/recentRoots.js": "d5b72e4e1954d41568ffb15eea29d46155c25cbe44597d3143531f97e347f30c",
+        "node_modules/@forshtat/hegota-support/dist/tx/types.js": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+      }
+    },
+    "checks": [
+      {
+        "name": "workshop",
+        "expected": "bcfe02a196ca97b6fb0d1044db9d0b4c673831fc",
+        "actual": "bcfe02a196ca97b6fb0d1044db9d0b4c673831fc",
+        "matches": true
+      },
+      {
+        "name": "sidecar",
+        "expected": "2e22ff0a2898e69ea4bf5275bce1be8581a8582a",
+        "actual": "2e22ff0a2898e69ea4bf5275bce1be8581a8582a",
+        "matches": true
+      },
+      {
+        "file": "AGENTS.md",
+        "expected": "8ffb28fa583f4700a2abc33e07826de076df004eb4c3c53a4f985f2f65f934e7",
+        "actual": "8ffb28fa583f4700a2abc33e07826de076df004eb4c3c53a4f985f2f65f934e7",
+        "matches": true
+      },
+      {
+        "file": "README.md",
+        "expected": "1ee9eb88f283d0aab267fec49b54abafd3fe7fbc823f088cbdc4259d0e171f7e",
+        "actual": "1ee9eb88f283d0aab267fec49b54abafd3fe7fbc823f088cbdc4259d0e171f7e",
+        "matches": true
+      },
+      {
+        "file": "LOCAL_DEVNET.md",
+        "expected": "e540e4eead5f220c5d79f666d852e471830be2d5be9df43f8d57076391394ddf",
+        "actual": "e540e4eead5f220c5d79f666d852e471830be2d5be9df43f8d57076391394ddf",
+        "matches": true
+      },
+      {
+        "file": "package.json",
+        "expected": "d7ba931a63718497d5a8f5cb194c25defc81888bf3d8c14b2a5d587fbae5e7a3",
+        "actual": "d7ba931a63718497d5a8f5cb194c25defc81888bf3d8c14b2a5d587fbae5e7a3",
+        "matches": true
+      },
+      {
+        "file": "yarn.lock",
+        "expected": "beab333c4d3d9ba886953c6debd629c2b2b047086462d160df519933683455d8",
+        "actual": "beab333c4d3d9ba886953c6debd629c2b2b047086462d160df519933683455d8",
+        "matches": true
+      },
+      {
+        "file": "workshop.config.json5",
+        "expected": "3eaa589295c7339900192666bbae0dc1fd6d22b92a8cd96397f1b50dbac3b930",
+        "actual": "3eaa589295c7339900192666bbae0dc1fd6d22b92a8cd96397f1b50dbac3b930",
+        "matches": true
+      },
+      {
+        "file": "src/lib/frameTx/build.ts",
+        "expected": "04c0a31baf516721fc8c3b73f50edac914bacc5833fdf890fb866cf34171a9f7",
+        "actual": "04c0a31baf516721fc8c3b73f50edac914bacc5833fdf890fb866cf34171a9f7",
+        "matches": true
+      },
+      {
+        "file": "src/lib/frameTx/send.ts",
+        "expected": "6f72faba05551243e4575b98c3d8c24290ecfaebca3f964c2dedf3f4f6cad1c3",
+        "actual": "6f72faba05551243e4575b98c3d8c24290ecfaebca3f964c2dedf3f4f6cad1c3",
+        "matches": true
+      },
+      {
+        "file": "src/lib/frameTx/profile.ts",
+        "expected": "736cc7b3b96e56a4c0295eae7f48582223a158837bd24660db434bf970f0bfef",
+        "actual": "736cc7b3b96e56a4c0295eae7f48582223a158837bd24660db434bf970f0bfef",
+        "matches": true
+      },
+      {
+        "file": "src/steps/step_2_tx_first.ts",
+        "expected": "e3a830e7196f9b2bf96c09d74bc08a3546abce873f4311e69fd504c75e61ffdc",
+        "actual": "e3a830e7196f9b2bf96c09d74bc08a3546abce873f4311e69fd504c75e61ffdc",
+        "matches": true
+      },
+      {
+        "file": "mempool-workshop-sidecar/deploy/local/start.mjs",
+        "expected": "71dbf6ffa23eae4f610fcbe871317bcbe20b8ac1703d3ef9715be35af3ec8417",
+        "actual": "71dbf6ffa23eae4f610fcbe871317bcbe20b8ac1703d3ef9715be35af3ec8417",
+        "matches": true
+      },
+      {
+        "file": "mempool-workshop-sidecar/deploy/local/setup.mjs",
+        "expected": "bc98fda71c19a9b369a1254446feb35a7c3315ea577b8bf4bdeaac6326b73b96",
+        "actual": "bc98fda71c19a9b369a1254446feb35a7c3315ea577b8bf4bdeaac6326b73b96",
+        "matches": true
+      },
+      {
+        "file": "mempool-workshop-sidecar/deploy/local/compose.json",
+        "expected": "62ee313688bf41544d78045c27fdd6e59aa15f61475ceaf159605fa91a6dd07d",
+        "actual": "62ee313688bf41544d78045c27fdd6e59aa15f61475ceaf159605fa91a6dd07d",
+        "matches": true
+      },
+      {
+        "file": "mempool-workshop-sidecar/bun.lock",
+        "expected": "dab2a961c71cb26f062eb7013b174094807e3dc277a622ed8d13a8134e93caa5",
+        "actual": "dab2a961c71cb26f062eb7013b174094807e3dc277a622ed8d13a8134e93caa5",
+        "matches": true
+      },
+      {
+        "file": "node_modules/@forshtat/hegota-support/package.json",
+        "expected": "4b1bdec9d990fa318fe5bb1995e73c4f55090c2097c098c4b8e8429364003ff4",
+        "actual": "4b1bdec9d990fa318fe5bb1995e73c4f55090c2097c098c4b8e8429364003ff4",
+        "matches": true
+      },
+      {
+        "file": "node_modules/viem/package.json",
+        "expected": "e6d38e6cb7661f13667fdf470937031a3d14f82f4b4f0e7904896a257ac8414a",
+        "actual": "e6d38e6cb7661f13667fdf470937031a3d14f82f4b4f0e7904896a257ac8414a",
+        "matches": true
+      },
+      {
+        "file": "node_modules/@forshtat/hegota-support/dist/profiles/ethrex-eip8141-tracer.js",
+        "expected": "221ebba1651ddfad17d5e9f6c4f9274a658a342651ab9822bf775e355d057001",
+        "actual": "221ebba1651ddfad17d5e9f6c4f9274a658a342651ab9822bf775e355d057001",
+        "matches": true
+      },
+      {
+        "file": "node_modules/@forshtat/hegota-support/dist/profiles/ethrex-hegota-devnet.js",
+        "expected": "789726b531be9585d4800f14920a014aeef278820fce74fe95bf8630c358190d",
+        "actual": "789726b531be9585d4800f14920a014aeef278820fce74fe95bf8630c358190d",
+        "matches": true
+      },
+      {
+        "file": "node_modules/@forshtat/hegota-support/dist/profiles/index.js",
+        "expected": "f6c9ed8926098009ed973b9c56d1a27b89a9ffd6acaf22f2d081243fd92260da",
+        "actual": "f6c9ed8926098009ed973b9c56d1a27b89a9ffd6acaf22f2d081243fd92260da",
+        "matches": true
+      },
+      {
+        "file": "node_modules/@forshtat/hegota-support/dist/profiles/registry.js",
+        "expected": "b42affad5ea551e19e5f9133561507b521a03ac13aa27d99323d6b01ebb6e0bb",
+        "actual": "b42affad5ea551e19e5f9133561507b521a03ac13aa27d99323d6b01ebb6e0bb",
+        "matches": true
+      },
+      {
+        "file": "node_modules/@forshtat/hegota-support/dist/profiles/types.js",
+        "expected": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+        "actual": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+        "matches": true
+      },
+      {
+        "file": "node_modules/@forshtat/hegota-support/dist/rpc/client.js",
+        "expected": "061e9611de7c1abb50ae25a61152fe77028b1a678b862616a12f0cf03621ea2b",
+        "actual": "061e9611de7c1abb50ae25a61152fe77028b1a678b862616a12f0cf03621ea2b",
+        "matches": true
+      },
+      {
+        "file": "node_modules/@forshtat/hegota-support/dist/rpc/index.js",
+        "expected": "c1bfd6d691776a6de298f6e112e4c9902686920f604446714b5536ec097f3a40",
+        "actual": "c1bfd6d691776a6de298f6e112e4c9902686920f604446714b5536ec097f3a40",
+        "matches": true
+      },
+      {
+        "file": "node_modules/@forshtat/hegota-support/dist/rpc/rejection.js",
+        "expected": "fa46556b98c16723065e91e2adeb7f54201c21c10e0db4760d7cc06ed7a6ebf9",
+        "actual": "fa46556b98c16723065e91e2adeb7f54201c21c10e0db4760d7cc06ed7a6ebf9",
+        "matches": true
+      },
+      {
+        "file": "node_modules/@forshtat/hegota-support/dist/rpc/wire.js",
+        "expected": "b275e38eacd45e6d24f0cef9b0d5fe4f8d3400014445c8d90a15bbd3c216fa3c",
+        "actual": "b275e38eacd45e6d24f0cef9b0d5fe4f8d3400014445c8d90a15bbd3c216fa3c",
+        "matches": true
+      },
+      {
+        "file": "node_modules/@forshtat/hegota-support/dist/solidity/index.js",
+        "expected": "64f161e53170664e3f5ff05612c41d0f7bfa3fe402a655fafb15e7534d75cd2b",
+        "actual": "64f161e53170664e3f5ff05612c41d0f7bfa3fe402a655fafb15e7534d75cd2b",
+        "matches": true
+      },
+      {
+        "file": "node_modules/@forshtat/hegota-support/dist/tx/build.js",
+        "expected": "4af7be777cc1d1ac8272e09f329e0a3170bf4e4c84a5354c28bb3b86d5c07849",
+        "actual": "4af7be777cc1d1ac8272e09f329e0a3170bf4e4c84a5354c28bb3b86d5c07849",
+        "matches": true
+      },
+      {
+        "file": "node_modules/@forshtat/hegota-support/dist/tx/codec.js",
+        "expected": "46b404bcc80195a1e64dfb7920a66146ae0e61e7e58591d92274d19ee700e0c2",
+        "actual": "46b404bcc80195a1e64dfb7920a66146ae0e61e7e58591d92274d19ee700e0c2",
+        "matches": true
+      },
+      {
+        "file": "node_modules/@forshtat/hegota-support/dist/tx/index.js",
+        "expected": "c699ef123fc9405dcd493c025510a47311c97e68ef256449c659e31b6bc4cd91",
+        "actual": "c699ef123fc9405dcd493c025510a47311c97e68ef256449c659e31b6bc4cd91",
+        "matches": true
+      },
+      {
+        "file": "node_modules/@forshtat/hegota-support/dist/tx/recentRoots.js",
+        "expected": "d5b72e4e1954d41568ffb15eea29d46155c25cbe44597d3143531f97e347f30c",
+        "actual": "d5b72e4e1954d41568ffb15eea29d46155c25cbe44597d3143531f97e347f30c",
+        "matches": true
+      },
+      {
+        "file": "node_modules/@forshtat/hegota-support/dist/tx/types.js",
+        "expected": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+        "actual": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+        "matches": true
+      }
+    ]
+  },
+  "error": {
+    "code": "RPC_UNREACHABLE",
+    "message": "Cannot reach gateway for eth_chainId; check local networking, Docker, and devnet uptime."
+  }
+}

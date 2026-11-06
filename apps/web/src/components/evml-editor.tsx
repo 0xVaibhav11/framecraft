@@ -193,7 +193,8 @@ export default function EvmlEditor() {
           />
           <p className="evml-hint">
             Run interprets the script and sends each <code>frame:tx</code> as one frame transaction. Calls outside a{" "}
-            <code>frame:tx</code> block are refused: this page has no wallet for plain transactions. Body frames
+            <code>frame:tx</code> block are refused, and so are <code>frame:new-account</code>, <code>frame:new-sponsor</code> and{" "}
+            <code>frame:tx --account</code>: this page has no wallet, only its test key. Body frames
             without <code>--gas</code> or <code>--state-gas</code> get the DeFi app’s EOA budget (600,000 / 1,500,000).
           </p>
         </section>

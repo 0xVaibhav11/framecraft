@@ -62,6 +62,8 @@ test('only this page\'s own alt-mempool transactions on chain 1337 are sent', ()
   assert.match(refusal(action(sponsoredClaims, { chainId: 1 }), sender), /chain 1337/);
   assert.match(refusal(action(sponsoredClaims, { from: usd }), sender), /signs only for its test account/);
   assert.match(refusal(action(sponsoredClaims, { mempool: 'canonical' }), sender), /alt mempool only/);
+  // frame:tx --account: a smart account its owner's wallet signs for.
+  assert.match(refusal(action(sponsoredClaims, { from: usd, account: { kind: 'frame-account', owner: sender } }), sender), /drop --account/);
   const many = Array.from({ length: MAX_FRAMES + 1 }, () => sponsoredClaims[3]);
   assert.match(refusal(action(many), sender), /at most 16/);
 });

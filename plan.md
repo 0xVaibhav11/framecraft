@@ -4,7 +4,7 @@ This document records how we intend to build the project, why we choose each com
 
 ## Current status
 
-**Milestone 1 is in progress, with the first viem SDK prototype implemented alongside it.** FramePay includes typed prepare/sign/submit/receipt/admission actions, a Next.js documentation site and local-devnet playground, source fingerprint checks, local environment inspection, and a baseline frame-transfer runner using the SDK. A separate local workshop devnet has been set up, and its handoff records an earlier successful transaction. Fresh live SDK evidence, runtime image identification, and official Aqua/SwapVM execution remain outstanding. PQ vault/paymaster contracts and the DeFi reference app are not implemented; the SDK package is private and unpublished.
+**Milestone 1 is in progress, with the first viem SDK prototype implemented alongside it.** FramePay includes typed prepare/sign/submit/receipt/admission actions, a Next.js documentation site and local/public-devnet playground, source fingerprint checks, local environment inspection, and a baseline frame-transfer runner using the SDK. A bounded open test paymaster contract and deployment tooling are implemented, with local and public deployment records and user-supplied local explorer evidence of sponsored admission and inclusion. Full frame receipts, gas charges, runtime image identification, and official Aqua/SwapVM execution remain outstanding. PQ vaults, production sponsorship policies and the DeFi reference app remain planned; the SDK package is private and unpublished.
 
 ## Build record
 
@@ -99,11 +99,78 @@ npm run sdk:bootstrap
 npm run web:bootstrap -- ../Stratigies/ethglobal_data_scracper/node_modules
 ```
 
-The second argument is an existing dependency directory containing the exact versions declared in `apps/web/package.json`; it is only a development bootstrap, not a runtime dependency on that application. An ordinary workspace dependency installation is the intended alternative when registry access is available. The default gateway is `http://127.0.0.1:14337/rpc`; a different loopback HTTP endpoint can be set with the server-only `FRAMEPAY_RPC_URL` environment variable. Remote gateways are deliberately outside this local playground's current scope.
+The second argument is an existing dependency directory containing the exact versions declared in `apps/web/package.json`; it is only a development bootstrap, not a runtime dependency on that application. An ordinary workspace dependency installation is the intended alternative when registry access is available. The default gateway is `http://127.0.0.1:14337/rpc`; a different loopback HTTP endpoint can be set with the server-only `FRAMEPAY_RPC_URL` environment variable. That initial version supported local gateways only; the later network-selection entry below adds the explicit public gateway.
 
 **Verification:** `npm test` passed all 29 tests, including seven new proxy tests for forwarding, method/chain restrictions, gateway restrictions, origin/body validation, streamed size limits, malformed upstream responses, and error redaction. `npm run web:typecheck` and `npm run web:build` passed. The production build generated the docs and playground routes. Generated HTML links and anchors were checked separately.
 
 **Remaining verification:** this agent session cannot listen on port 3000, launch its browser check, or reach the local gateway. Rendered browser behavior and a live browser-submitted transaction therefore remain unverified. No screenshot or new successful devnet transaction is claimed. The next live check is to open the playground against the running workshop and inspect its actual receipt and admission report. Paymaster, PQ, Aqua, and simulation flows remain subsequent work.
+
+### November 6, 2026 — transfer composer and payment selection
+
+**Implemented:**
+
+- Added the pure SDK `buildTransferPlan` module and viem action `prepareTransfer`. Callers supply a sender, recipient/value, local draft rules, and a payment choice. Self-payment generates `VERIFY(EXECUTION_AND_PAYMENT)` plus `SENDER`; requesting a paymaster generates sender `VERIFY(EXECUTION)`, paymaster `VERIFY(PAYMENT)`, then `SENDER`.
+- Required a recipient allowlist, maximum transfer value and gas-price ceiling. These constrain draft construction locally; they are not persistent on-chain permissions, recurring quotas, expiry enforcement, or a total-fee guarantee. The signed envelope binds the actual frames and fees, not a separate reusable policy.
+- Restricted this first convenience module to plain EOA ETH transfers using the existing SECP256K1 signer. Preparation checks the chain, sender/recipient code, sender balance, and deployed code at a selected paymaster. Code presence is not proof of compatible validation, sufficient paymaster funds, or eligibility. The paymaster must still approve payment.
+- Added optional paymaster verification calldata and explicit verification gas budgets for callers who already have the provider-specific input. The workshop SponsorPaymaster uses empty calldata and defaults of 50,000 execution / 0 state gas. FramePay does not issue provider signatures, discover providers, or guarantee those defaults for arbitrary contracts.
+- Updated the playground with payment selection, a custom paymaster address, optional authorization data, editable allowlist/value limits, and a review panel showing the actual prepared recipient, value, requested payer and frame count. Draft inputs lock after preparation. Receipt waiting and frame rendering support both two- and three-frame transactions.
+- Allowed a zero-value sponsored operation to be prepared for an unfunded sender. A nonzero ETH transfer still requires the sender to hold that value; sponsorship covers gas only. The UI retains its 0.001 test-ETH cap and fixed 2-gwei maximum gas price.
+- Added a seventh API reference page (`/docs/compose-transfer`) and a typechecked `examples/compose-transfer.ts` consumer example. Browser wallet connection, token reimbursement, discounts, PQ accounts, persistent policy contracts, swaps and automatic gas estimation remain separate integrations.
+
+**Verification:** all 36 tests pass, including seven transfer-module tests covering approval scopes, local rule rejection before RPC, zero-balance sponsorship preparation, signature binding, funding boundaries, chain/code checks, input snapshots, and submission through the existing SDK/proxy request policy. SDK compilation and all three consumer examples pass. Frontend typecheck and Next.js production build pass. Browser interaction and a real sponsored receipt have not been verified in this session: a read-only attempt to reach `127.0.0.1:14337` failed, and no transaction was submitted.
+
+**User-supplied evidence:** an earlier explorer excerpt showed transaction `0x71b430856d244cf925544031cb79765987cceaaa685da49b64afee5c737c3ca0` admitted and on chain, with the self-paid two-frame structure. The pasted frame-status cells did not include execution statuses. This is reported admission/inclusion evidence, not independently fetched receipt verification or evidence for the new sponsored module.
+
+**Next live check:** use the already deployed and funded workshop paymaster, choose it in the playground, and prepare a zero-value operation from a fresh unfunded EOA. Review and sign, submit once, then confirm all three frame receipts and the payer's actual balance change. Do not label sponsorship successful based only on code presence or a submission hash.
+
+### November 6, 2026 — local/public network selection and test paymaster
+
+**Implemented:**
+
+- Exported `frameNetworks.local` and `frameNetworks.public` from the SDK. Public RPC is `https://altmempoolgateway.forshtat.com/rpc` and its explorer is `https://explorer.altmempool.wtf`, as recorded in the installed workshop README and deployment documentation. Endpoint reachability and the running public client revision could not be independently verified.
+- Added a network selector to the frontend and network-scoped RPC requests, faucet requests, signing sessions, receipt lookups and explorer links. Both environments use chain ID 1337: switching remounts the session to discard its disposable key and draft, and is disabled during prepared/in-flight transactions and funding/lookup operations. Chain ID alone is not a cryptographic replay boundary between these devnets; exported transactions should not be moved across them.
+- Extended the server proxy with an explicit public-network route to the exact known HTTPS gateway. Local overrides remain loopback-only. Unknown network identifiers and arbitrary URLs are rejected; public failures never silently fall back to local.
+- Implemented `contracts/src/FramePayPaymaster.sol`, an **open test sponsor** with an immutable maximum transaction-cost ceiling. Its constructor accepts at most 0.01 ETH funding and a nonzero ceiling no higher than 0.001 ETH; deployment uses those maxima. Anyone can consume that test budget. There is no allowlist, authorization service, token reimbursement, withdrawal, or automatic refill. Account authorization is still the sender's responsibility.
+- Used the installed `@forshtat/hegota-support@0.0.1` ERC8421_WORKSHOP APPROVE and TXPARAM helper creation bytes unchanged, with build-time provenance checks. The paymaster creates only those two helpers. APPROVE runs by delegatecall, while MAX_COST is read by staticcall; it does not read BALANCE during validation. MAX_COST parameter 0x06 is an ethrex profile extension, not a portable EIP guarantee.
+- Added a reproducible solc 0.8.33 artifact (Cancun, optimizer 200 runs), source/helper fingerprints, and seven Foundry policy tests. The tests replace unsupported frame-opcode helpers in the ordinary EVM and therefore do not establish native frame execution or alt-mempool admission.
+- Added deployment tooling that checks chain/genesis before creating a key or requesting funds, generates separate private deployment keys under ignored `.framepay/paymaster/`, obtains faucet funds, deploys with constructor funding, records its expected hash before one-shot broadcast, and checks its receipt/address/code before publishing `config/paymasters.json`. A shared deployment lock protects concurrent registry updates. Re-running inspects the saved hash rather than sending another deployment. Keys and workshop participant state are never published or modified.
+- Added a playground control that verifies a recorded deployment's genesis and code hash before selecting it. Both deployment records remain null until a successful live deployment. A production frontend must be rebuilt after the registry changes; the development server watches the JSON import.
+
+**Commands (FramePay root):**
+
+```sh
+# The compiled artifact is included; rebuild after changing its source.
+npm run paymaster:build
+npm run paymaster:test
+
+# Deploy separately, with each selected network reachable.
+npm run paymaster:deploy -- --network public
+npm run paymaster:deploy -- --network local
+
+# Inspect the user-supplied public frame transaction.
+npm run transaction:inspect -- public 0x28f5671f4fd42689c70bd8e0850f5b237f7d31416f3eb6a7b39d43a74af558a4
+```
+
+`paymaster:build` requires solc 0.8.33+commit.64118f21, and `paymaster:test` also requires Foundry. `FRAMEPAY_SOLC` can point to that compiler. Deployment uses the committed artifact and does not require a compiler. The CLI uses the named network endpoints exported by the SDK; the web-only local RPC override does not change the deployment target.
+
+**Actual attempts:** public explorer DNS lookup failed, public receipt/admission RPC calls failed, and both local and public deployment commands stopped during gateway connectivity. No deployment key was generated, faucet requested, transaction broadcast, or contract address published by these attempts. `evidence/paymaster/` records both `not-submitted` outcomes. The user-supplied public transaction link remains unverified by this session.
+
+**Validation:** 43 Node tests pass, including seven network/deployment tests covering network separation, exact public routing, no fallback, chain/genesis identity, one-shot RPC, receipt validation and artifact/source consistency. Seven Foundry policy tests pass. The frontend typecheck and production build pass with both network choices. Native paymaster approval, gas usage, public admission and live sponsored execution still require the actual devnet. No production security or live deployment claim is made.
+
+**Next live check:** deploy to the desired reachable network, select its recorded paymaster, create a fresh browser EOA, and submit a zero-value sponsored transaction. Verify all three frame statuses and actual gas-payer balance changes before marking sponsorship complete.
+
+### November 6, 2026 — deployments and local sponsored inclusion
+
+Successful deployment reports now follow the earlier connectivity failures in `evidence/paymaster/`. The deployment script checked successful receipts, contract addresses and deployed code before recording both environments in `config/paymasters.json`:
+
+- Local: `0xb460FC3D73Cd7aD58f5E5E8139adf3881ff231C1`, deployment transaction `0x55ca0830d5cbb9b96eee0bead45b93ce14720af84c34abe610cdcc68ddee3872`.
+- Public: `0x81616d300F2745481250b5F99e40d1ae89129a32`, deployment transaction `0x227950d76879c6505cf0100e7820bff41b3fd871519fe2c757c2d26ca66cb9cd`.
+
+Each was initially funded with 0.01 test ETH and limits maximum transaction cost to 0.001 test ETH. Deployment uses a legacy transaction; the sidecar explorer tracks alternative-mempool history and may not display these deployments.
+
+**User-supplied local evidence:** [transaction `0x9a76fe4ce02bcba5f65b750149da2fe1e48e33765cc1d696539013ef8204a4f6`](http://localhost:5173/tx/0x9a76fe4ce02bcba5f65b750149da2fe1e48e33765cc1d696539013ef8204a4f6) was reported on chain by Sidecar v4.1.1 with manual bundling. All admission rules passed, including 7/7 sender checks and 7/7 payer checks. The frames were sender execution approval, payment approval by `0xb460…31C1`, and a user operation transferring 301,000,000,000,000 wei (0.000301 ETH). The explorer recorded admission at 15:03:45.363 and inclusion at 15:03:57.322.
+
+The excerpt establishes reported admission and inclusion with the deployed paymaster as payer. Its frame-status cells were empty, so per-frame execution results and actual gas charges are not independently verified here. Public sponsored execution also remains unverified.
 
 ### Recording implementation as it happens
 

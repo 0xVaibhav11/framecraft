@@ -4,7 +4,7 @@ A developer SDK and reference DeFi app designed to bring post-quantum vault auth
 
 The project lets applications offer users a smart-account vault that can authorize actions with a post-quantum key and transfer or trade tokens without holding ETH for gas. An application-funded paymaster covers the network gas cost.
 
-**Status:** Early development. A typed viem SDK prototype, Next.js documentation and interactive local-devnet playground, environment inspection, and frame-transaction smoke tooling are implemented. Live SDK execution remains unverified; PQ vault authorization, paymaster adapters, and Aqua integration are planned.
+**Status:** Early development. A typed viem SDK, Next.js docs and playground with local/public devnet selection, transfer composition, and deployment tooling are implemented. A test paymaster contract limits each sponsored transaction's maximum cost, with local and public deployments recorded in `config/paymasters.json`. The local explorer reports a three-frame transaction admitted and included with the deployed paymaster as payer; full frame execution results and gas charges remain to be checked. PQ vault authorization, token-fee paymaster adapters, and Aqua integration are planned.
 
 ## What the kit provides
 
@@ -14,6 +14,7 @@ The project lets applications offer users a smart-account vault that can authori
 - **Aqua/SwapVM integration:** a recurring, partially fillable buy position with price, spending, and expiry limits.
 - **Developer SDK:** a shared interface for preparing, signing, simulating, submitting, and tracking frame transactions.
 - **Developer documentation and playground:** searchable API guides and an interactive prepare, sign, submit, and inspect workflow for local frame transactions.
+- **Transfer composer:** generate EOA ETH-transfer frames from user choices, check local draft limits, and review the requested gas payer before signing. A selected paymaster must independently approve sponsorship.
 - **Reference vault app:** a user-facing demonstration of the SDK's transfer and trading flows.
 
 ## How the pieces fit

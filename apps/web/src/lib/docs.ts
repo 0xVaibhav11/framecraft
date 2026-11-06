@@ -11,18 +11,20 @@ export type Doc = {
 };
 
 export const clientCode = `import { createPublicClient, defineChain, http } from 'viem';
-import { frameActions } from '@framepay/sdk';
+import { frameActions, frameNetworks } from '@framepay/sdk';
+
+const network = frameNetworks.local; // or frameNetworks.public
 
 const chain = defineChain({
-  id: 1337,
-  name: 'Local frame devnet',
+  id: network.chainId,
+  name: network.name,
   nativeCurrency: { name: 'Test Ether', symbol: 'ETH', decimals: 18 },
-  rpcUrls: { default: { http: ['http://localhost:14337/rpc'] } },
+  rpcUrls: { default: { http: [network.rpcUrl] } },
 });
 
 const client = createPublicClient({
   chain,
-  transport: http('http://localhost:14337/rpc', { retryCount: 0 }),
+  transport: http(network.rpcUrl, { retryCount: 0 }),
 }).extend(frameActions({ profile: 'ethrex-eip8141-tracer' }));`;
 
 export const docs: Doc[] = [
@@ -34,7 +36,7 @@ export const docs: Doc[] = [
       "Give your existing viem client a native frame-transaction workflow. Keep your transport, chain configuration, and familiar public actions.",
     signature: "frameActions({ profile })",
     code: clientCode,
-    returns: "Your viem client, extended with six typed FramePay actions.",
+    returns: "Your viem client, extended with seven typed FramePay actions.",
     parameters: [
       {
         name: "profile",
@@ -46,7 +48,90 @@ export const docs: Doc[] = [
     notes: [
       "createFrameClient({ chain, transport, profile }) is also available as a convenience factory.",
       "The transport must point to the gateway sidecar. The gateway forwards chain reads and routes frame submissions.",
+      "frameNetworks.local and frameNetworks.public identify distinct environments with the same chain ID (1337). Keep keys, nonces, paymasters and pending transactions separate. Chain ID alone does not prevent replay between these devnets.",
       "The current sidecar follows the workshop’s PR #6 rules, which differ from later ERC-8421 revisions.",
+    ],
+  },
+  {
+    slug: "compose-transfer",
+    title: "Compose a transfer",
+    category: "Transaction modules",
+    description:
+      "Choose a recipient, draft limits, and who should pay for gas. FramePay generates the verification and execution frames for an EOA ETH transfer.",
+    signature: "client.prepareTransfer(parameters)",
+    code: `// With the client, EOA sender, recipient and paymaster address configured:
+const transaction = await client.prepareTransfer({
+  sender,
+  transfer: { to: recipient, value: 1_000_000_000n },
+  payment: { type: 'paymaster', address: paymaster },
+  // Alternatively: payment: { type: 'self' },
+  rules: {
+    allowedRecipients: [recipient],
+    maxValue: 1_000_000_000_000_000n,
+    maxFeePerGas: 2_000_000_000n,
+  },
+  maxFeePerGas: 2_000_000_000n,
+});
+
+// Review the generated transaction before signing it.
+const signed = await client.signFrameTransaction({ transaction, signer });
+const hash = await client.sendFrameTransaction({ transaction: signed });
+const receipt = await client.waitForFrameReceipt({
+  hash, expectedFrameCount: signed.frames.length,
+});`,
+    returns:
+      "Promise<FrameTx> — an unsigned two-frame self-paid or three-frame paymaster-request transaction.",
+    parameters: [
+      {
+        name: "sender",
+        type: "Address",
+        description:
+          "Plain EOA sender, using the existing local SECP256K1 signing path.",
+      },
+      {
+        name: "transfer",
+        type: "{ to: Address; value: bigint }",
+        description:
+          "Plain EOA recipient and ETH amount in wei. Zero is allowed for a sponsorship test; this is not a token transfer.",
+      },
+      {
+        name: "payment",
+        type: "TransferPayment",
+        description:
+          "Choose { type: 'self' } or { type: 'paymaster', address }. The paymaster contract must independently approve payment.",
+      },
+      {
+        name: "payment.verificationData",
+        type: "Hex?",
+        description:
+          "Provider-specific verification calldata. Defaults to 0x, matching the workshop's open SponsorPaymaster. No provider authorization is issued by this SDK.",
+      },
+      {
+        name: "payment.verificationGas",
+        type: "{ execution: bigint; state: bigint }?",
+        description:
+          "Explicit paymaster verification budget. Defaults to execution 50,000 and state 0; custom contracts may require different limits.",
+      },
+      {
+        name: "rules",
+        type: "TransferRules",
+        description:
+          "Required recipient allowlist, maximum value and maximum gas price. Local draft checks only; they do not install on-chain permissions.",
+      },
+      {
+        name: "maxFeePerGas",
+        type: "bigint",
+        description:
+          "Requested maximum gas price in wei, bounded by rules.maxFeePerGas. This is not a total-fee cap or an estimate.",
+      },
+    ],
+    notes: [
+      "buildTransferPlan({ profile, ...parameters }) provides a pure offline builder with generated parameters and a review summary. It does not query code, balances, or sponsorship eligibility.",
+      "prepareTransfer checks chain 1337, requires EOA sender/recipient, reads the sender balance, and requires deployed code at a selected paymaster before preparing the ordinary nonce.",
+      "Code presence does not establish paymaster compatibility, available funds, or sponsorship approval. The sidecar's validation and on-chain execution still decide the outcome.",
+      "Sponsorship covers network gas only. The sender must hold the ETH being transferred. For a zero-ETH sender demo, use a zero-value operation and a funded compatible paymaster.",
+      "The maximum value and allowlist constrain this draft locally. Persistent spending limits, recurring schedules and expiry must be implemented by account/paymaster contracts.",
+      "This module does not implement token reimbursement, provider discovery, discount quotes, PQ authorization, contract calls or swaps. Those need separate adapters and measured gas budgets.",
     ],
   },
   {

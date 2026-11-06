@@ -21,6 +21,7 @@ const groups: {
   {
     label: "SDK REFERENCE",
     items: [
+      { label: "Compose a transfer", href: "/docs/compose-transfer" },
       { label: "Prepare a transaction", href: "/docs/prepare" },
       { label: "Sign locally", href: "/docs/sign" },
       { label: "Submit to the sidecar", href: "/docs/submit" },

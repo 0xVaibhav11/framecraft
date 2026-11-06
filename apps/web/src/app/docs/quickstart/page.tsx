@@ -73,13 +73,55 @@ export default function Quickstart() {
             <span className="inline-number">04</span>Try the browser playground
           </h2>
           <p>
+            Select Local devnet or Public alt-mempool devnet in the top bar.
+            Both use chain ID 1337 but have separate histories, accounts and
+            deployments. Public mode does not require your local Docker devnet.
+          </p>
+          <p>
             Create a disposable account in this tab, fund it using the local
-            faucet, and walk through the SDK one action at a time. The example
-            is self-paid and uses SECP256K1 authorization.
+            faucet, and walk through the SDK one action at a time. Choose
+            self-payment or request a deployed paymaster, set draft limits, then
+            review the generated frames before signing. The account uses
+            SECP256K1 authorization.
           </p>
           <Link className="button primary" href="/playground">
             Open playground <Icon name="arrow" size={16} />
           </Link>
+        </section>
+        <section className="section-block" id="paymaster">
+          <h2>
+            <span className="inline-number">05</span>Deploy a test paymaster
+          </h2>
+          <p>
+            From the FramePay directory, deploy the included artifact to the
+            selected network. The script creates a separate deployment key,
+            requests faucet funding, and funds the paymaster with 0.01 test ETH.
+          </p>
+          <CodeBlock
+            title="Terminal · choose a network"
+            code={
+              "npm run paymaster:deploy -- --network public\n# Or use your running local devnet:\nnpm run paymaster:deploy -- --network local"
+            }
+          />
+          <p>
+            After a successful deployment, the script records its receipt, code
+            hash and genesis in <code>config/paymasters.json</code>. The
+            playground then offers “Use deployed FramePay paymaster” for that
+            network. Run the dev server or rebuild a production frontend after
+            updating this file.
+          </p>
+          <p>
+            This is an open test sponsor: anyone can consume its finite budget,
+            subject to a 0.001 ETH maximum transaction cost. It does not provide
+            allowlisted sponsorship, token reimbursement or automatic refills.
+            Its policy depends on the ethrex profile’s MAX_COST extension.
+          </p>
+          <p>
+            If a deployment response is lost, rerun the same command to inspect
+            the saved transaction hash. The script does not automatically send a
+            second deployment. A chain reset or source change requires reviewing
+            the old record before a new deployment.
+          </p>
         </section>
         <Link className="next-page" href="/docs/prepare">
           <span>
@@ -95,6 +137,7 @@ export default function Quickstart() {
         <a href="#client">Create a client</a>
         <a href="#run">Run the smoke flow</a>
         <a href="#browser">Try it in your browser</a>
+        <a href="#paymaster">Deploy a paymaster</a>
       </aside>
     </main>
   );

@@ -27,3 +27,5 @@ pnpm-debug.log*
 .evmcrispr/
 # Monaco build copied from it (scripts/copy-monaco.mjs)
 public/vs/
+.vercel
+.env*

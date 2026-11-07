@@ -1,0 +1,2 @@
+# Preserve the compiler's exact output and its pinned SHA-256 digest.
+packages/sdk/assets/ethfalcon/falcon.mjs -whitespace linguist-generated=true

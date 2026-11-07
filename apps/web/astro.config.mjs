@@ -6,6 +6,7 @@ import { evmcrisprSrc, local, vendoredDepIds } from "./scripts/evmcrispr-sources
 
 // https://astro.build/config
 export default defineConfig({
+  output: "static",
   integrations: [react()],
   vite: {
     // The /editor page embeds EVMcrispr's editor from its TypeScript sources

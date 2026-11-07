@@ -1,7 +1,13 @@
 # FramePay web
 
-Minimal Astro site with strict TypeScript configuration. The existing Next.js
-proof of concept lives in `../poc`.
+Static Astro site with strict TypeScript configuration and the Framecraft EVML
+editor. The Next.js proof of concept lives in `../poc`.
+
+For Vercel, import the repository with **Root Directory `.`** and **Node.js 24.x**.
+The root `vercel.json` installs dependencies with pinned Bun, builds this app,
+and publishes `apps/web/dist`. No environment variables, server adapter,
+Emscripten, or Foundry are required. See the [deployment guide](../../docs/vercel.md)
+for exact settings, build prerequisites, and passkey-origin behavior.
 
 Run these commands from the repository root:
 
@@ -201,9 +207,12 @@ also used by `apps/poc`.
 
 The dev/build scripts generate the privacy worker and copy verified circuits into
 `public/privacy`, and copy the pinned Falcon signer into `public/ethfalcon`.
-These generated assets are ignored by git. On a fresh checkout, prepare the signer
-with `bun run quantum:bootstrap` and `bun run quantum:build` using Emscripten 3.1.74
-(see `../../docs/quantum-wallet.md`) before starting the web app.
+These generated public directories are ignored by git. The small public signer
+artifact is checked in at `packages/sdk/assets/ethfalcon` with its source pins,
+SHA-256 manifest, and upstream license. Preparation rejects stale or corrupt
+artifacts. A fresh web checkout needs no C compiler; to regenerate the artifact,
+run `bun run quantum:bootstrap` and `bun run quantum:build` with Emscripten 3.1.74
+(see [the signer instructions](../../packages/sdk/assets/ethfalcon/README.md)).
 
 - `bun run web:test:privacy`: real EVML parsing/execution tests for the local module.
 - `bun run private:test`: privacy package and worker types/tests.

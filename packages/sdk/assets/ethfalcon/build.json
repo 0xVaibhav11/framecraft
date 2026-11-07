@@ -1,0 +1,7 @@
+{
+  "repository": "https://github.com/ZKNoxHQ/ETHFALCON.git",
+  "commit": "43ac863e30281bb7821748178d39967367d54bc2",
+  "emscripten": "3.1.74",
+  "cSourceSha256": "bc6736a28dffe155073a723f52605123f81828c844f2e9874cb6debb816db06d",
+  "moduleSha256": "4db49da8a9fb7f8f188d1b28e0d01aad1d5be36d69e52240b5bd558f45b15f3a"
+}

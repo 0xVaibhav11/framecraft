@@ -5,12 +5,13 @@ import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 const root = fileURLToPath(new URL('../../../', import.meta.url));
-const source = path.join(root, 'apps/poc/public/ethfalcon');
+// Public, source-pinned build artifact: a fresh deployment needs no local C toolchain.
+const source = path.join(root, 'packages/sdk/assets/ethfalcon');
 const pins = JSON.parse(await readFile(path.join(root, 'config/ethfalcon.json'), 'utf8'));
 let manifest;
 try { manifest = JSON.parse(await readFile(path.join(source, 'build.json'), 'utf8')); }
-catch { throw new Error('Build the passkey signer first: bun run quantum:bootstrap && bun run quantum:build (requires Emscripten 3.1.74).'); }
-if (manifest.commit !== pins.commit || manifest.cSourceSha256 !== pins.cSourceSha256 || manifest.emscripten !== pins.emscripten
+catch { throw new Error('Missing checked-in Falcon artifact. Restore packages/sdk/assets/ethfalcon or rebuild with quantum:bootstrap and quantum:build (Emscripten 3.1.74).'); }
+if (manifest.repository !== pins.repository || manifest.commit !== pins.commit || manifest.cSourceSha256 !== pins.cSourceSha256 || manifest.emscripten !== pins.emscripten
   || createHash('sha256').update(await readFile(path.join(source, 'falcon.mjs'))).digest('hex') !== manifest.moduleSha256)
   throw new Error('Falcon build does not match its source pin or artifact digest. Run bun run quantum:build.');
 const target = path.join(root, 'apps/web/public/ethfalcon');

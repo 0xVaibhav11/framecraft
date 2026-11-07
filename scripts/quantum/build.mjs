@@ -30,4 +30,11 @@ execFileSync(compiler, [...files.map(n => resolve(src, n + '.c')), resolve(root,
 await copyFile(resolve(root, 'scripts/quantum/worker.mjs'), resolve(output, 'worker.mjs'));
 await copyFile(resolve(upstream, 'LICENSE.txt'), resolve(output, 'LICENSE.txt'));
 await writeFile(resolve(output, 'build.json'), JSON.stringify({ ...pins, moduleSha256: sha256(await readFile(resolve(output, 'falcon.mjs'))) }, null, 2) + '\n');
+// Keep the small public signer available to static hosts without a C toolchain.
+// Review and commit these artifacts together whenever the source pin changes.
+const distributable = resolve(root, 'packages/sdk/assets/ethfalcon');
+await mkdir(distributable, { recursive: true });
+for (const name of ['falcon.mjs', 'build.json', 'LICENSE.txt']) {
+  await copyFile(resolve(output, name), resolve(distributable, name));
+}
 console.log('Built ETHFalcon Keccak signer with Web Crypto entropy and an isolated worker.');

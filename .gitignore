@@ -39,8 +39,11 @@ test-results/
 .DS_Store
 
 .nx/
+.vercel/
 
 # Private Foundry build output
 contracts/private/out/
 contracts/private/cache/
 contracts/private/broadcast/
+.vercel
+.env*

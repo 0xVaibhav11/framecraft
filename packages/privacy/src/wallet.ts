@@ -21,7 +21,9 @@ export async function makeWallet(label: string, tree: MerkleView, mnemonic = Mne
   };
 }
 
-export async function scan(wallet: PrivateWallet, tree: PrivateTree): Promise<OwnedNote[]> {
+export type PrivateViewWallet = Pick<PrivateWallet, 'address' | 'viewingKeyPair' | 'notes' | 'getNullifyingKey'>;
+
+export async function scan(wallet: PrivateViewWallet, tree: PrivateTree): Promise<OwnedNote[]> {
   const owned: OwnedNote[] = [];
   const viewing = wallet.viewingKeyPair;
   for (const event of tree.events) {
@@ -54,7 +56,7 @@ export async function scan(wallet: PrivateWallet, tree: PrivateTree): Promise<Ow
   wallet.notes = owned;
   return owned;
 }
-export const balance = (wallet: PrivateWallet, token: Address): bigint => wallet.notes
+export const balance = (wallet: Pick<PrivateWallet, 'notes'>, token: Address): bigint => wallet.notes
   .filter((n) => n.note.tokenData.tokenAddress.toLowerCase() === token.toLowerCase())
   .reduce((sum, n) => sum + n.note.value, 0n);
 export function select(wallet: PrivateWallet, token: Address, amount: bigint): OwnedNote {

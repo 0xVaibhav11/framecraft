@@ -45,4 +45,4 @@ export { registerPasskey, signWithPasskey, parsePasskeyProof, decodeP256Signatur
 export type { PasskeyCredential, PasskeyProof, WalletCall } from './passkey.js';
 export { FALCON_PRF_SALT, quantumWalletAbi, quantumFactoryAbi, quantumFactoryArgs, quantumChallenge, falconKeyHash, validateFalconKey, registerQuantumPasskey, signWithQuantumPasskey, runFalcon } from './quantum.js';
 export type { QuantumCredential, QuantumProof } from './quantum.js';
-export { unlockQuantumPrivacy } from './quantum.js';
+export { unlockQuantumPrivacy, approveQuantumPrivateIntent } from './quantum.js';

@@ -81,7 +81,9 @@ export async function handleRpc(
     return failure(
       body.id,
       -32603,
-      "Configure a loopback HTTP gateway in FRAMEPAY_RPC_URL.",
+      networkId === "local"
+        ? "Local devnet requires a loopback HTTP gateway in FRAMEPAY_RPC_URL. Select FramePay devnet to use the hosted gateway."
+        : `Invalid ${network.name} gateway configuration. Rebuild the SDK and restart the app.`,
       503
     );
   try {

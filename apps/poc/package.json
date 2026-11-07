@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev --webpack --hostname 127.0.0.1",
-    "build": "next build --webpack",
+    "dev": "bun run --cwd ../../packages/sdk build && bun run --cwd ../../packages/privacy build && node ../../scripts/private/browser/build.mjs && next dev --webpack --hostname 127.0.0.1",
+    "build": "bun run --cwd ../../packages/sdk build && bun run --cwd ../../packages/privacy build && node ../../scripts/private/browser/build.mjs && next build --webpack",
     "start": "next start --hostname 127.0.0.1",
     "typecheck": "tsc --noEmit"
   },

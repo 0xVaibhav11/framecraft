@@ -263,3 +263,7 @@
     flex-wrap: wrap;
   }
 }
+
+.evml-private-address { font: 12px var(--evml-mono); overflow-wrap: anywhere; color: var(--evml-ink); }
+.evml-card textarea { width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid var(--evml-line); border-radius: 6px; font: 12px var(--evml-mono); }
+.evml-card .evml-hint code { overflow-wrap: anywhere; }

@@ -50,8 +50,9 @@
     "web:preview": "bun run --cwd apps/web preview",
     "poc:bootstrap": "node scripts/link-poc-deps.mjs",
     "poc:dev": "bun run sdk:build && bun run --cwd apps/poc dev",
-    "poc:build": "lerna run build --scope @framepay/poc --include-dependencies",
+    "poc:build": "bun run privacy:build && lerna run build --scope @framepay/poc --include-dependencies",
     "poc:typecheck": "bun run sdk:build && bun run --cwd apps/poc typecheck",
+    "private:poc": "bun run privacy:build && node scripts/private/poc.ts",
     "privacy:build": "bun run sdk:build && bun run --cwd packages/privacy build",
     "private:setup": "bun run privacy:build && node scripts/private/cli.ts setup",
     "private:build": "bun run privacy:build && node scripts/private/cli.ts build",
@@ -61,18 +62,24 @@
     "private:typecheck": "bun run privacy:build && tsc -p scripts/private/tsconfig.json",
     "private:test": "bun run private:typecheck && node --test tests/private/*.test.ts",
     "private:contracts:test": "bun run privacy:build && node scripts/private/cli.ts test-contracts",
-    "private:test:proofs": "bun run privacy:build && node scripts/private/cli.ts test-proofs"
+    "private:test:proofs": "bun run privacy:build && node scripts/private/cli.ts test-proofs",
+    "private:browser:build": "bun run privacy:build && node scripts/private/browser/build.mjs",
+    "private:faucet:deploy": "bun run privacy:build && node scripts/private/browser/deploy-faucet.ts",
+    "private:browser:check": "node scripts/private/browser/check.mjs",
+    "web:test:privacy": "bun run sdk:build && bun run --cwd apps/web test:privacy"
   },
   "devDependencies": {
     "@forshtat/hegota-support": "0.0.1",
+    "@framepay/privacy": "workspace:*",
     "@framepay/sdk": "workspace:*",
     "effect": "^4.1.2",
+    "esbuild": "0.25.12",
+    "esbuild-plugin-polyfill-node": "0.3.0",
     "husky": "9.1.7",
     "lerna": "10.1.1",
     "nx": "22.7.12",
     "typescript": "7.0.2",
-    "viem": "2.57.11",
-    "@framepay/privacy": "workspace:*"
+    "viem": "2.57.11"
   },
   "packageManager": "bun@1.3.6"
 }

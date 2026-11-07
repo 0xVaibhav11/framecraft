@@ -1,7 +1,7 @@
 "use client";
 import { frameNetworks } from "@framepay/sdk";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { encodeAbiParameters, encodeFunctionData, formatUnits, keccak256, parseAbiParameters, type Address, type Hex } from "viem";
 import { BrandMark, Icon } from "../icon";
 import { NetworkBadge } from "../network";
@@ -11,7 +11,10 @@ import { amount, assertSwap, assertTransfer, defaultRules, loadRules, validateRu
 import { useDefi, type Review } from "./use-defi";
 import { HowItWorks, reviewFlow, type Flow } from "./how-it-works";
 
-type Tab = "Swap" | "Transfer" | "Positions" | "Rules";
+import { TransactionInfo } from "./transaction-info";
+import { PrivatePanel } from "./private-panel";
+
+type Tab = "Swap" | "Transfer" | "Positions" | "Rules" | "Privacy";
 type Rules = typeof defaultRules;
 type PositionState = { available: bigint; totalSpent: bigint; epochSpent: bigint; inactive: boolean; expiry: number; nextPeriod: number };
 const display = (value: bigint, decimals = 6) => formatUnits(value, decimals);
@@ -40,6 +43,10 @@ export function DefiApp() {
   const app = useDefi();
   const { deployment: config, account, publicClient, balances, locked, busy } = app;
   const [explanation, setExplanation] = useState<{ flow: Flow; review?: Review } | null>(null);
+  const [transactionHash, setTransactionHash] = useState<string | null>(null);
+  const [privateRunning, setPrivateRunning] = useState(false);
+  const privateBusy = useCallback((running: boolean) => setPrivateRunning(running), []);
+  useEffect(() => { app.network.setLocked(locked || privateRunning); }, [locked, privateRunning, app.network.setLocked]);
   const [tab, setTab] = useState<Tab>("Swap");
   const [sponsored, setSponsored] = useState(true);
   const [rules, setRules] = useState<Rules>({ ...defaultRules });
@@ -216,20 +223,22 @@ export function DefiApp() {
     Swap: ["Trade with a little more control.", "Swap through Aqua. Set your limits. Let the paymaster handle gas."],
     Transfer: ["Send tokens. Keep your ETH.", "Paymaster-sponsored transfers, with your rules checked before funds move."],
     Positions: ["A plan for your next purchase.", "Create recurring buys with fixed prices, spending budgets, and an expiry."],
+    Privacy: ["Move privately. Inspect every frame.", "Shield, transfer, manage maker inventory and swap using RAILGUN proofs."],
     Rules: ["Your money. Your conditions.", "Choose what must be true before you sign your next transaction."],
   };
   const ruleRow = (label: string, value: string) => <div className="defi-rule-row"><span className="defi-check"><Icon name="check" size={13} /></span><span>{label}</span><strong>{value}</strong></div>;
   return <div className="defi">
     <header className="defi-header"><Link href="/app" className="defi-brand"><BrandMark /><span>framepay<span className="defi-brand-dot">.</span></span><small>DeFi</small></Link>
-      <nav aria-label="DeFi app">{(["Swap", "Transfer", "Positions", "Rules"] as Tab[]).map(item => <button key={item} aria-current={tab === item ? "page" : undefined} className={tab === item ? "active" : ""} disabled={!!app.review} onClick={() => { setTab(item); app.setError(""); }}>{item}</button>)}</nav>
+      <nav aria-label="DeFi app">{(["Swap", "Transfer", "Positions", "Rules", "Privacy"] as Tab[]).map(item => <button key={item} aria-current={tab === item ? "page" : undefined} className={tab === item ? "active" : ""} disabled={!!app.review || privateRunning} onClick={() => { setTab(item); app.setError(""); }}>{item}</button>)}</nav>
       <div className="defi-header-tools"><Link href="/docs/quickstart" className="defi-docs-link">Docs <Icon name="external" size={12} /></Link><button className="defi-account-button" disabled={locked} onClick={() => account ? void navigator.clipboard.writeText(account.address).then(() => app.setNotice("Account address copied.")) : void app.task(app.createPasskey)}><Icon name="wallet" size={16} />{account ? shortAddress(account.address) : "Create quantum wallet"}</button></div>
     </header>
     <main id="main-content" className="defi-main">
-      <div className="defi-intro"><div><p className="defi-eyebrow"><span /> BUILT AROUND YOUR RULES</p><h1>{titles[tab][0]}</h1><p>{titles[tab][1]}</p></div><div className="defi-intro-tools"><button className="defi-secondary defi-how-trigger" onClick={() => setExplanation({ flow: tab === "Swap" ? "swap" : tab === "Transfer" ? transferToken === "eth" ? "native" : "token" : tab === "Positions" ? "create" : "rules" })}><Icon name="info" size={15} />How it works</button><NetworkBadge /></div></div>
+      <div className="defi-intro"><div><p className="defi-eyebrow"><span /> BUILT AROUND YOUR RULES</p><h1>{titles[tab][0]}</h1><p>{titles[tab][1]}</p></div><div className="defi-intro-tools">{tab !== "Privacy" && <button className="defi-secondary defi-how-trigger" onClick={() => setExplanation({ flow: tab === "Swap" ? "swap" : tab === "Transfer" ? transferToken === "eth" ? "native" : "token" : tab === "Positions" ? "create" : "rules" })}><Icon name="info" size={15} />How it works</button>}<NetworkBadge /></div></div>
       {!config && <div className="defi-banner" role="status">Select Framecraft devnet to use the deployed swap, transfer and wallet contracts.</div>}
       {app.error && <div className="defi-banner error" role="alert"><Icon name="info" size={18} /><span>{app.error}</span><button onClick={() => app.setError("")} aria-label="Dismiss error"><Icon name="close" size={15} /></button></div>}
       {app.notice && <div className="defi-banner" role="status"><Icon name="info" size={18} /><span>{app.notice}</span><button onClick={() => app.setNotice("")} aria-label="Dismiss notification"><Icon name="close" size={15} /></button></div>}
-      {app.pending && <div className="defi-pending"><span className="defi-pulse" /><div><strong>{busy ? "Waiting for confirmation" : "Transaction needs inspection"}</strong><p>{app.pending.title} · {shortAddress(app.pending.hash)}</p></div>{frameNetworks[app.network.id].explorerUrl && <a href={`${frameNetworks[app.network.id].explorerUrl}/tx/${app.pending.hash}`} target="_blank" rel="noreferrer">Explorer ↗</a>}<button disabled={busy} onClick={() => void app.inspect()}>Inspect receipt</button></div>}
+      {app.pending && <div className="defi-pending"><span className="defi-pulse" /><div><strong>{busy ? "Waiting for confirmation" : "Transaction needs inspection"}</strong><p>{app.pending.title} · {shortAddress(app.pending.hash)}</p></div>{frameNetworks[app.network.id].explorerUrl && <a href={`${frameNetworks[app.network.id].explorerUrl}/tx/${app.pending.hash}`} target="_blank" rel="noreferrer">Explorer ↗</a>}<button onClick={() => setTransactionHash(app.pending!.hash)}>View transaction</button><button disabled={busy} onClick={() => void app.inspect()}>Inspect receipt</button></div>}
+      {tab === "Privacy" ? <PrivatePanel app={app} onInspect={setTransactionHash} onRunning={privateBusy} /> : <>
       <section className="defi-balances" aria-label="Account balances">
         <div><Token /><span><small>Available dollars</small><strong>{account ? display(balances.usd) : "—"} <em>fpUSD</em></strong></span></div>
         <div><Token asset /><span><small>Available asset</small><strong>{account ? display(balances.asset, 18) : "—"} <em>fpASSET</em></strong></span></div>
@@ -291,10 +300,12 @@ export function DefiApp() {
           <button className="defi-text-button" onClick={() => setExplanation({ flow: "wallet" })}><Icon name="info" size={13} />How wallets & claims work</button>
         </section><div className="defi-powered"><span className="defi-tiny-dot" /> Native frames. Official Aqua settlement.</div></aside>
       </div>
-      <details className="defi-activity"><summary><span>Recent activity</span><span>{app.activity.length} transactions <span className="defi-activity-chevron" aria-hidden="true">⌄</span></span></summary><div className="defi-activity-content">{app.activity.length ? <div className="defi-activity-table">{app.activity.map(item => <div key={item.hash}><span className={`defi-activity-icon ${item.status}`}><Icon name={item.status === "confirmed" ? "check" : item.status === "failed" ? "close" : "refresh"} size={16} /></span><span><strong>{item.title}</strong><small>{new Date(item.at).toLocaleString()}</small></span><span className={`defi-status ${item.status}`}>{item.status === "pending" ? "Needs confirmation" : item.status}</span>{frameNetworks[app.network.id].explorerUrl ? <a href={`${frameNetworks[app.network.id].explorerUrl}/tx/${item.hash}`} target="_blank" rel="noreferrer">{shortAddress(item.hash)} <Icon name="external" size={13} /></a> : <code title={item.hash}>{shortAddress(item.hash)}</code>}</div>)}</div> : <div className="defi-empty"><span><Icon name="layers" size={22} /></span><div><strong>Your next move starts here.</strong><p>Confirmed swaps and transfers will appear in this space.</p></div></div>}</div></details>
+      </>}
+      {tab !== "Privacy" && <details className="defi-activity"><summary><span>Recent activity</span><span>{app.activity.length} transactions <span className="defi-activity-chevron" aria-hidden="true">⌄</span></span></summary><div className="defi-activity-content">{app.activity.length ? <div className="defi-activity-table">{app.activity.map(item => <div key={item.hash}><span className={`defi-activity-icon ${item.status}`}><Icon name={item.status === "confirmed" ? "check" : item.status === "failed" ? "close" : "refresh"} size={16} /></span><span><strong>{item.title}</strong><small>{new Date(item.at).toLocaleString()}</small></span><span className={`defi-status ${item.status}`}>{item.status === "pending" ? "Needs confirmation" : item.status}</span><code title={item.hash}>{shortAddress(item.hash)}</code><button className="defi-text-button" onClick={() => setTransactionHash(item.hash)}>View transaction <Icon name="external" size={13} /></button></div>)}</div> : <div className="defi-empty"><span><Icon name="layers" size={22} /></span><div><strong>Your next move starts here.</strong><p>Confirmed swaps and transfers will appear in this space.</p></div></div>}</div></details>}
       <footer className="defi-footer"><span>FramePay · Devnet preview</span><span>{app.wallet?.falconPublicKey ? "Test assets only · ETHFalcon authorization" : app.wallet ? "Test assets only · Passkey authorization" : "Test assets only · EOA authorization"}</span><Link href="/playground">Developer playground ↗</Link></footer>
     </main>
     {app.review && <ReviewModal review={app.review} busy={busy} confirm={() => void app.confirm()} cancel={() => app.setReview(null)} explain={() => setExplanation({ flow: reviewFlow(app.review!), review: app.review! })} />}
+    {transactionHash && <TransactionInfo hash={transactionHash} networkId={app.network.id} close={() => setTransactionHash(null)} />}
     {explanation && <HowItWorks initialFlow={explanation.flow} review={explanation.review} context={{ network: app.network.id, deployment: config, sponsor: app.sponsor, wallet: app.wallet, accountAddress: account?.address, relayAddress: app.relayAddress, sponsored }} close={() => setExplanation(null)} />}
   </div>;
 }

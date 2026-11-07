@@ -2640,3 +2640,25 @@ textarea.text-input {
  .defi-how-path p { margin-top:5px; }.defi-how-contracts { grid-template-columns:1fr; }.defi-how-frame-body { padding-left:16px; }
  .defi-how-footer { padding:10px 16px; }.defi-how dl>div { gap:8px; }.defi-how dt { min-width:64px; }
 }
+.transaction-dialog { width:min(900px,94vw); max-height:90dvh; overflow:auto; border:1px solid var(--d-line,#dce4d7); border-radius:16px; padding:24px; background:#fbfcf8; color:#213e33; }
+.transaction-dialog::backdrop { background:rgba(15,32,25,.5); }
+.transaction-dialog h2 { margin:6px 0; }.transaction-dialog h3 { margin:24px 0 12px; }
+.transaction-hash { display:flex; align-items:center; flex-wrap:wrap; gap:12px; margin:18px 0; }.transaction-hash code { overflow-wrap:anywhere; font-size:12px; }
+.transaction-actions { display:flex; flex-wrap:wrap; align-items:center; gap:16px; }.transaction-actions a { color:#286c50; font-size:12px; }
+.transaction-facts { display:grid; grid-template-columns:1fr 1fr; gap:14px 24px; margin:20px 0; }.transaction-facts div { min-width:0; }.transaction-facts dt { font-size:11px; color:#71816b; margin-bottom:4px; }.transaction-facts dd { margin:0; overflow-wrap:anywhere; font-size:12px; }
+.transaction-frame { margin:12px 0; padding:16px; border:1px solid #dce4d7; border-radius:10px; background:white; }.transaction-frame>summary { cursor:pointer; font-weight:600; font-size:13px; }
+.transaction-raw { margin:12px 0; font-size:12px; }.transaction-raw summary { cursor:pointer; }.transaction-raw pre { max-height:300px; overflow:auto; padding:12px; background:#edf2e8; border-radius:6px; white-space:pre-wrap; overflow-wrap:anywhere; }
+.defi-activity-table .defi-text-button { margin-left:auto; white-space:nowrap; }
+.privacy-panel { flex:1; min-height:0; overflow:auto; padding:0 2px 20px; scrollbar-width:thin; }
+.privacy-notice { display:flex; gap:12px; padding:14px 18px; background:#eef3e7; border:1px solid #d9e3ce; border-radius:10px; font-size:12px; line-height:1.6; }.privacy-notice svg { flex-shrink:0; margin-top:3px; }.privacy-notice p { margin:0; }
+.privacy-status { display:flex; justify-content:space-between; align-items:center; gap:15px; padding:14px 0; font-size:12px; }
+.privacy-balances { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:16px; }.privacy-balances .defi-card { padding:18px; }.privacy-balances h3 { font-size:13px; }.privacy-balances p { margin:6px 0; font-size:12px; overflow-wrap:anywhere; }
+.privacy-content { display:grid; grid-template-columns:minmax(0,1.4fr) minmax(0,1fr); gap:18px; align-items:start; }.privacy-content .defi-card { overflow:visible; }.privacy-content h2 { margin:16px 0; font-size:20px; }.privacy-content p,.privacy-content li { line-height:1.7; font-size:12px; }.privacy-content ol { padding-left:20px; }.privacy-content li { margin:12px 0; }
+.privacy-operations { display:flex; flex-wrap:wrap; gap:6px; }.privacy-operations button { border:1px solid #dce4d7; padding:7px 10px; border-radius:6px; background:#f7f9f3; font-size:11px; }.privacy-operations button.active { background:#1c5a45; border-color:#1c5a45; color:white; }
+.privacy-contract { display:grid; gap:5px; }.privacy-contract code { font-size:10px; overflow-wrap:anywhere; }
+.privacy-history { margin:22px 0; }.privacy-history h3 { font-size:14px; }.privacy-history article { display:flex; align-items:center; gap:16px; padding:12px; border-bottom:1px solid #dce4d7; font-size:12px; }.privacy-history article>div { flex:1; }.privacy-history small { display:block; color:#71816b; margin-top:5px; }.privacy-history code { font-size:11px; }
+@media(max-width:760px) { .transaction-dialog { padding:18px; }.transaction-facts { grid-template-columns:1fr; }.privacy-content,.privacy-balances { grid-template-columns:1fr; }.privacy-history article { flex-wrap:wrap; }.privacy-panel { overflow:visible; }.defi-header nav { overflow-x:auto; }.defi-activity-table .defi-text-button { margin-left:0; } }
+
+.privacy-address { display:block; overflow-wrap:anywhere; font-size:10px; padding:10px 0; }
+
+.privacy-faucet { padding:14px; margin:12px 0; border:1px solid #dce4d7; border-radius:10px; background:#f3f7ee; }.privacy-faucet p { margin:6px 0 12px; }.privacy-faucet small { display:block; overflow-wrap:anywhere; margin-top:10px; font-size:10px; }

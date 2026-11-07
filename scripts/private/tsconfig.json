@@ -3,7 +3,8 @@
     "target": "ES2022", "module": "NodeNext", "moduleResolution": "NodeNext",
     "lib": ["ES2022", "DOM"], "strict": true, "skipLibCheck": true,
     "noEmit": true, "allowImportingTsExtensions": true,
-    "types": ["node"], "typeRoots": ["../../packages/privacy/node_modules/@types", "../../node_modules/@types"]
+    "types": ["node"], "typeRoots": ["../../packages/privacy/node_modules/@types", "../../node_modules/@types"],
+    "paths": { "@railgun-community/engine": ["../../packages/privacy/node_modules/@railgun-community/engine/dist/index.d.ts"] }
   },
-  "include": ["./**/*.ts", "../../tests/private/**/*.ts", "../../packages/privacy/scripts/**/*.ts"]
+  "include": ["./**/*.ts", "../../tests/private/**/*.ts", "../../packages/privacy/scripts/**/*.ts", "../../packages/privacy/src/**/*.d.ts"]
 }

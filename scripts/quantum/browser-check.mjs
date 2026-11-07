@@ -54,6 +54,21 @@ try {
   assert.notEqual(first.falconSalt, second.falconSalt, 'Signing entropy must not reset on reload');
   assert.equal(first.falconSignature.length, 32);
   console.log('Reload regenerated the same owner; fresh Falcon signatures contain no WebAuthn proof.');
+  const privateDomain = '0x' + '31'.repeat(32);
+  const privateWallet = '0x' + '42'.repeat(20);
+  const privateDigest = (domain, wallet) => page.evaluate(async ({ domain, wallet }) => {
+    const sdk = await import('/sdk.mjs');
+    const seed = await sdk.unlockQuantumPrivacy(JSON.parse(localStorage.getItem('public-wallet')), domain, wallet);
+    try { return [...new Uint8Array(await crypto.subtle.digest('SHA-256', seed))].map(x => x.toString(16).padStart(2, '0')).join(''); }
+    finally { new Uint8Array(seed).fill(0); }
+  }, { domain, wallet });
+  const privateOwner = await privateDigest(privateDomain, privateWallet);
+  await page.reload();
+  assert.equal(await privateDigest(privateDomain, privateWallet), privateOwner);
+  assert.notEqual(await privateDigest('0x' + '32'.repeat(32), privateWallet), privateOwner);
+  assert.notEqual(await privateDigest(privateDomain, '0x' + '43'.repeat(20)), privateOwner);
+  console.log('Private entropy is deterministic and separated by wallet address and genesis.');
+
   const mismatch = await page.evaluate(async digest => {
     const sdk = await import('/sdk.mjs');
     const wrong = JSON.parse(localStorage.getItem('public-wallet'));

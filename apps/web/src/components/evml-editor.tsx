@@ -11,10 +11,53 @@ import deployments from "../../../../config/defi.json";
 import paymasters from "../../../../config/paymasters.json";
 import { makeFrameHandler, refuseOtherActions, type SentFrameTransaction } from "../lib/evml-frames";
 import { rpc, shortHex, transportOf } from "../lib/frame-rpc";
+import Privacy from "../lib/privacy/module";
+import { PrivateScriptRuntime, type PrivateRuntimeState } from "../lib/privacy/runtime";
+import { PrivateScriptWalletPanel } from "./private-script-wallet";
+import { hasPrivateFrames } from '../lib/privacy/frame-plan';
+import { loadFrameHistory, saveFrameHistory } from '../lib/evml-history';
 
 // EVML with the `frame` module registered directly, so `load frame` works
 // without EVMcrispr's experimental flag. `std` (exec, batch, set, …) is built in.
-const evml = createEvml().use(Frame as unknown as ModuleInput);
+const evml = createEvml().use(Frame as unknown as ModuleInput, Privacy as unknown as ModuleInput);
+const PRIVATE_EXAMPLE = `# Create/deploy your private wallet and get FPA + FPB first.
+# Each tx block is ONE alt-mempool submission, with one passkey approval.
+# Choose any pocket names. These pockets all belong to YOUR passkey.
+load frame [tx]
+load privacy [@token]
+set $paymaster ${paymasters.devnet.address}
+
+tx --paymaster $paymaster (
+  batch (
+    privacy:shield @token("FPA") "10" --wallet savings
+    privacy:shield @token("FPB") "10" --wallet trading
+  )
+)
+
+# The previous transaction confirms before these proofs are prepared.
+tx --paymaster $paymaster (
+  privacy:transfer @token("FPA") "1" trading --wallet savings
+)
+tx --paymaster $paymaster (
+  batch (
+    privacy:add-inventory @token("FPA") "2" --wallet savings --inventory liquidity
+    privacy:shield @token("FPB") "2" --wallet liquidity
+  )
+)
+privacy:scan
+privacy:quote "0.1" --inventory liquidity
+
+# Run a separate block using the exact output printed by privacy:quote:
+# tx --paymaster $paymaster (
+#   privacy:swap "0.1" --expect "OUTPUT" --wallet trading --inventory liquidity
+# )
+# Other spending commands can also go inside tx:
+# privacy:remove-inventory @token("FPA") "0.5" --wallet savings --inventory liquidity
+# privacy:unshield @token("FPA") "0.5" @me --wallet savings # public relay address
+# Use your friend's full private address, not a local pocket label:
+# privacy:transfer @token("FPA") "0.5" "0zkPRIVATE_RECIPIENT" --wallet savings
+# privacy:lock
+`;
 const NETWORKS = Object.keys(frameNetworks) as FrameNetworkId[];
 type Status = "checking" | "online" | "offline" | "wrong-chain";
 
@@ -50,7 +93,7 @@ ${body}
 const errorText = (error: unknown) => (error instanceof Error ? error.message.slice(0, 400) : "The request failed.");
 
 export default function EvmlEditor() {
-  const [networkId, setNetworkId] = useState<FrameNetworkId>("public");
+  const [networkId, setNetworkId] = useState<FrameNetworkId>("devnet");
   const environment = frameNetworks[networkId];
   const [status, setStatus] = useState<Status>("checking");
   const [block, setBlock] = useState<bigint | null>(null);
@@ -60,7 +103,17 @@ export default function EvmlEditor() {
   const [funding, setFunding] = useState(false);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState("");
-  const [sent, setSent] = useState<SentFrameTransaction[]>([]);
+  const [history, setHistory] = useState<Partial<Record<FrameNetworkId, SentFrameTransaction[]>>>({});
+  const sent = history[networkId] ?? [];
+  useEffect(() => {
+    setHistory(current => ({ ...current, [networkId]: current[networkId] ?? loadFrameHistory(networkId) }));
+  }, [networkId]);
+  const [privateState, setPrivateState] = useState<PrivateRuntimeState>({ viewing: false });
+  const [privateFeedback, setPrivateFeedback] = useState<{ message: string; error?: boolean }>({ message: '' });
+  const [privateAction, setPrivateAction] = useState<string | null>(null);
+  const privateRuntime = useRef<PrivateScriptRuntime | null>(null);
+  const runController = useRef<AbortController | null>(null);
+  const runningRef = useRef(false);
   // The script survives a network switch unless it is still the starter.
   const scriptRef = useRef(starterScript(networkId));
   const [editorKey, setEditorKey] = useState(0);
@@ -99,7 +152,6 @@ export default function EvmlEditor() {
     signer.current = privateKeyToFrameSigner(generatePrivateKey());
     setAddress(signer.current.address);
     setBalance(null);
-    setSent([]);
     setError("");
     void refreshBalance(signer.current.address);
   }, [refreshBalance]);
@@ -134,22 +186,80 @@ export default function EvmlEditor() {
   }
 
   const transports = useMemo(() => ({ [environment.chainId]: transportOf(networkId) }), [environment.chainId, networkId]);
-  const record = useCallback((update: SentFrameTransaction) => {
-    setSent((list) => [update, ...list.filter((item) => item.hash !== update.hash)]);
+  const remember = useCallback((network: FrameNetworkId, update: SentFrameTransaction) => {
+    setHistory(current => {
+      const list = current[network] ?? loadFrameHistory(network);
+      const previous = list.find(item => item.hash === update.hash);
+      const entry = { ...previous, ...update, ...(update.receipt ? { error: undefined, outcome: undefined } : {}) };
+      const next = [entry, ...list.filter(item => item.hash !== update.hash)].slice(0, 30);
+      saveFrameHistory(network, next);
+      return { ...current, [network]: next };
+    });
   }, []);
+  const record = useCallback((update: SentFrameTransaction) => remember(networkId, update), [networkId, remember]);
+  // Private submissions and restored pending transactions always belong to devnet.
+  const recordPrivate = useCallback((update: SentFrameTransaction) => remember('devnet', update), [remember]);
+  useEffect(() => {
+    const runtime = new PrivateScriptRuntime(setPrivateState, recordPrivate);
+    privateRuntime.current = runtime;
+    try { runtime.restore(); } catch (err) { setError(errorText(err)); }
+    const lock = () => { runController.current?.abort(); runtime.lock(); };
+    window.addEventListener('pagehide', lock);
+    return () => { window.removeEventListener('pagehide', lock); lock(); privateRuntime.current = null; };
+  }, [recordPrivate]);
+  useEffect(() => { privateRuntime.current?.lock(); }, [networkId]);
+
+  async function privateTask(action: 'create' | 'deploy' | 'faucet' | 'inspect') {
+    const runtime = privateRuntime.current, current = signer.current;
+    const unavailable = !runtime || !current ? 'Wallet tools are still loading. Try again shortly.'
+      : runningRef.current ? 'Another operation is running. Wait for it to finish.'
+      : networkId !== 'devnet' ? 'Select Framecraft devnet to use this wallet.' : null;
+    if (unavailable || !runtime || !current) { setPrivateFeedback({ message: unavailable!, error: true }); return; }
+    runningRef.current = true; setRunning(true); setError('');
+    setPrivateAction(action);
+    setPrivateFeedback({ message: action === 'deploy' ? 'Checking wallet deployment…' : 'Working…' });
+    const controller = new AbortController(); runController.current = controller;
+    try {
+      if (action === 'create') {
+        await runtime.createWallet();
+        setPrivateFeedback({ message: 'Wallet created. Select Deploy wallet to put it onchain.' });
+      } else if (action === 'inspect') {
+        await runtime.inspect();
+        setPrivateFeedback({ message: 'Transaction inspection complete.' });
+      } else {
+        await runtime[action](current, controller.signal, message => setPrivateFeedback({ message }));
+        if (action === 'faucet') setPrivateFeedback({ message: 'Test tokens received.' });
+      }
+    } catch (err) { setPrivateFeedback({ message: errorText(err), error: true }); }
+    finally { runningRef.current = false; setRunning(false); setPrivateAction(null); runController.current = null; }
+  }
 
   const executeAction = useCallback(async (script: EvmlScript) => {
     const current = signer.current;
     if (!current) throw new Error("Create a test account first.");
+    if (runningRef.current) throw new Error('Another script or wallet operation is running.');
+    runningRef.current = true;
+    const controller = new AbortController(); runController.current = controller;
     setRunning(true);
     setError("");
     try {
       await script.execute(undefined, {
         prepareChains: false,
-        handlers: { ...refuseOtherActions(), frame: makeFrameHandler({ networkId, signer: current, onUpdate: record }) },
+        signal: controller.signal,
+        handlers: { ...refuseOtherActions(), frame: async (action, ctx) => {
+            if (networkId === 'devnet' && privateRuntime.current?.state.pending)
+              throw new Error('Inspect the pending private transaction before sending another frame transaction.');
+            if (hasPrivateFrames(action)) {
+              if (!privateRuntime.current) throw new Error('Private wallet runtime is not ready.');
+              return privateRuntime.current.frameHandler(networkId, current)(action, ctx);
+            }
+            return makeFrameHandler({ networkId, signer: current, onUpdate: record })(action, ctx);
+          },
+          ...(privateRuntime.current ? { wallet: privateRuntime.current.handler(networkId, current) } : {}) },
       });
     } finally {
       setRunning(false);
+      runningRef.current = false; runController.current = null;
       void refreshBalance(current.address);
     }
   }, [networkId, record, refreshBalance]);
@@ -167,7 +277,8 @@ export default function EvmlEditor() {
         <span className="evml-muted">
           {status === "checking" ? "Checking gateway…" : connected ? `Block ${block}` : status === "wrong-chain" ? "Different chain" : "Gateway not connected"}
         </span>
-        <button className="evml-link" onClick={() => void checkNetwork()}>Recheck</button>
+        <button className="evml-link" disabled={running} onClick={() => void checkNetwork()}>Recheck</button>
+        {running && <button className="evml-link" onClick={() => runController.current?.abort()}>Stop after current submission</button>}
       </div>
       {(status === "offline" || status === "wrong-chain") && (
         <p className="evml-banner">
@@ -192,15 +303,23 @@ export default function EvmlEditor() {
             executeAction={address ? executeAction : undefined}
           />
           <p className="evml-hint">
+            <code>frame:tx</code> can combine public calls and private spending commands in one alt-mempool transaction.
+            Use <code>batch ( … )</code> inside it for all-or-nothing execution. Keep scans and quotes outside the block.
+          </p>
+          <p className="evml-hint">
             Run interprets the script and sends each <code>frame:tx</code> as one frame transaction. Calls outside a{" "}
             <code>frame:tx</code> block are refused, and so are <code>frame:new-account</code>, <code>frame:new-sponsor</code> and{" "}
-            <code>frame:tx --account</code>: this page has no wallet, only its test key. Body frames
+            <code>frame:tx --account</code>: public frame commands use the test key. Private commands use the separate passkey wallet. Body frames
             without <code>--gas</code> or <code>--state-gas</code> get the DeFi app’s EOA budget (600,000 / 1,500,000).
           </p>
         </section>
         <aside className="evml-side">
+          {networkId === 'devnet' && <PrivateScriptWalletPanel state={privateState} runtime={privateRuntime.current}
+            feedback={privateFeedback} activeAction={privateAction}
+            disabled={running || funding || !connected} onTask={action => void privateTask(action)}
+            onExample={() => { scriptRef.current = PRIVATE_EXAMPLE; setEditorKey(key => key + 1); }} />}
           <section className="evml-card">
-            <h2>Test account <span className="evml-badge">SECP256K1</span></h2>
+            <h2>Test / relay account <span className="evml-badge">SECP256K1</span></h2>
             {address && (
               <div className="evml-account">
                 <div>
@@ -222,6 +341,10 @@ export default function EvmlEditor() {
               <button className="evml-link" disabled={running} onClick={createAccount}>New account</button>
             </div>
             <p className="evml-hint">
+              {networkId === 'devnet' && <>This temporary address submits your private wallet transactions. Your passkey wallet above holds your wallet assets
+              and authorizes spending. </>}Public scripts use this test account as <code>@me</code>.
+            </p>
+            <p className="evml-hint">
               The key stays in this page’s memory: reloading or switching networks replaces the account. Sponsored
               scripts (<code>--paymaster</code>) need no ETH. Use test funds only.
             </p>
@@ -230,12 +353,12 @@ export default function EvmlEditor() {
           <section className="evml-card">
             <h2>Sent frame transactions <span className="evml-badge">{sent.length}</span></h2>
             {sent.length === 0 ? (
-              <p className="evml-hint">Nothing sent yet from this account.</p>
+              <p className="evml-hint">No saved transactions on this network yet.</p>
             ) : (
               <ul className="evml-sent">
                 {sent.map((item) => {
-                  const state = item.receipt ? (item.receipt.status === "0x1" ? "ok" : "failed") : item.error ? "failed" : "";
-                  const label = item.receipt ? (item.receipt.status === "0x1" ? "Included" : "Reverted") : item.error ? "Unknown" : "Pending";
+                  const state = item.receipt ? (item.receipt.status === "0x1" ? "ok" : "failed") : item.outcome === 'rejected' || item.error ? "failed" : "";
+                  const label = item.receipt ? (item.receipt.status === "0x1" ? "Included" : "Reverted") : item.outcome === 'rejected' ? 'Rejected' : item.error ? "Unknown" : "Pending";
                   return (
                     <li key={item.hash}>
                       <span className={`evml-status ${state}`}>{label}</span>

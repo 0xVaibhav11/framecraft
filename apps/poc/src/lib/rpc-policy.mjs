@@ -1,15 +1,22 @@
+import { frameNetworks } from "@framepay/sdk";
+
 const address = (value) =>
   typeof value === "string" && /^0x[0-9a-fA-F]{40}$/.test(value);
 const hash = (value) =>
   typeof value === "string" && /^0x[0-9a-fA-F]{64}$/.test(value);
 const latest = (value) => value === "latest" || value === "pending";
+const blockNumber = (value) => typeof value === "string" && /^0x(?:0|[1-9a-fA-F][0-9a-fA-F]{0,15})$/.test(value);
 const hexData = (value) => typeof value === "string" && value.length <= 65_538 && /^0x(?:[0-9a-fA-F]{2})*$/.test(value);
 const checks = {
   eth_chainId: (p) => p.length === 0,
   eth_blockNumber: (p) => p.length === 0,
   eth_getBlockByNumber: (p) =>
     p.length === 2 && ["0x0", "latest"].includes(p[0]) && p[1] === false,
-  eth_call: (p) => p.length === 2 && p[1] === "latest" && p[0] && !Array.isArray(p[0])
+  eth_getLogs: (p) => p.length === 1 && p[0] && !Array.isArray(p[0])
+    && Object.keys(p[0]).every(key => ["address", "fromBlock", "toBlock"].includes(key))
+    && address(p[0].address) && blockNumber(p[0].fromBlock) && blockNumber(p[0].toBlock)
+    && BigInt(p[0].toBlock) >= BigInt(p[0].fromBlock) && BigInt(p[0].toBlock) - BigInt(p[0].fromBlock) <= 100000n,
+  eth_call: (p) => p.length === 2 && (p[1] === "latest" || blockNumber(p[1])) && p[0] && !Array.isArray(p[0])
     && Object.keys(p[0]).every(key => ["to", "data", "from"].includes(key))
     && address(p[0].to) && hexData(p[0].data) && (p[0].from === undefined || address(p[0].from)),
   skandha_explorer_info: (p) => p.length === 0,
@@ -18,6 +25,7 @@ const checks = {
   eth_getTransactionCount: (p) =>
     p.length === 2 && address(p[0]) && latest(p[1]),
   eth_getTransactionReceipt: (p) => p.length === 1 && hash(p[0]),
+  eth_getTransactionByHash: (p) => p.length === 1 && hash(p[0]),
   skandha_explorer_getTransaction: (p) => p.length === 1 && hash(p[0]),
   skandha_explorer_faucet: (p) => p.length === 1 && address(p[0]),
   eth_sendFrameTransaction: (p) =>
@@ -48,9 +56,8 @@ export function validateRpcRequest(body) {
 export function validateGateway(value, network = "local") {
   try {
     const url = new URL(value);
-    if (network === "devnet") return url.href === "https://psi-essential-rebate-wrist.trycloudflare.com/rpc";
-    if (network === "public")
-      return url.href === "https://altmempoolgateway.forshtat.com/rpc";
+    if (network === "devnet" || network === "public")
+      return url.protocol === "https:" && url.href === frameNetworks[network].rpcUrl;
     if (network !== "local") return false;
     return (
       url.protocol === "http:" &&

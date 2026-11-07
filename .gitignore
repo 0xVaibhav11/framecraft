@@ -13,6 +13,7 @@ contracts/aqua/out/
 contracts/aqua/cache/
 contracts/aqua/artifacts/
 apps/*/public/ethfalcon/
+apps/*/public/privacy/
 
 # Local credentials, deployment journals, and exported test accounts
 .framepay/

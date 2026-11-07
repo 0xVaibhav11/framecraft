@@ -65,7 +65,8 @@
     "private:test:proofs": "bun run privacy:build && node scripts/private/cli.ts test-proofs",
     "private:browser:build": "bun run privacy:build && node scripts/private/browser/build.mjs",
     "private:faucet:deploy": "bun run privacy:build && node scripts/private/browser/deploy-faucet.ts",
-    "private:browser:check": "node scripts/private/browser/check.mjs"
+    "private:browser:check": "node scripts/private/browser/check.mjs",
+    "web:test:privacy": "bun run sdk:build && bun run --cwd apps/web test:privacy"
   },
   "devDependencies": {
     "@forshtat/hegota-support": "0.0.1",

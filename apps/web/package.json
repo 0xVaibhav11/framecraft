@@ -13,11 +13,13 @@
   },
   "scripts": {
     "prepare:evmcrispr": "node scripts/vendor-evmcrispr.mjs && node scripts/copy-monaco.mjs",
-    "dev": "bun run prepare:evmcrispr && astro dev",
-    "build": "bun run prepare:evmcrispr && astro check && astro build",
+    "dev": "bun run prepare:evmcrispr && bun run prepare:privacy && astro dev",
+    "build": "bun run prepare:evmcrispr && bun run prepare:privacy && astro check && astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "typecheck": "bun run prepare:evmcrispr && astro check"
+    "typecheck": "bun run prepare:evmcrispr && astro check",
+    "prepare:privacy": "bun run --cwd ../../packages/sdk build && bun run --cwd ../../packages/privacy build && node scripts/prepare-privacy.mjs",
+    "test:privacy": "node scripts/test-privacy.mjs"
   },
   "dependencies": {
     "@astrojs/react": "^7.1.4",

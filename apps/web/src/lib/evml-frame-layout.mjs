@@ -2,6 +2,7 @@
 // FramePay SDK frames, and what this site refuses to send. Plain .mjs so the
 // node tests can import it (tests/evml-frames.test.mjs).
 import { frame, frameNetworks, getProfile } from "@framepay/sdk";
+import { isPrivateFrameData } from './privacy/frame-intent.mjs';
 
 const profile = getProfile("ethrex-eip8141-tracer");
 const MODES = { verify: "VERIFY", sender: "SENDER", default: "DEFAULT" };
@@ -42,6 +43,7 @@ export function prefixLength(specs) {
 export function toFrames(specs, budgets) {
   const prefix = prefixLength(specs);
   return specs.map((spec, i) => {
+    if (isPrivateFrameData(spec.data)) throw new Error('Private frame intent must be proved and authorized before serialization.');
     const fallback = spec.mode === "verify" ? (spec.target === null ? budgets.account : budgets.payment) : budgets.eoa;
     return frame(profile, MODES[spec.mode], {
       target: spec.target,

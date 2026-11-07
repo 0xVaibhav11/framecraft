@@ -6,9 +6,9 @@ import { encodeAddress } from './engine.mjs';
 import type { Pocket, BrowserPrivateSnapshot } from './types.ts';
 import config from '../../../config/private-wallet.json' with {type:'json'};
 export const VIEW_SESSION_MS = 5 * 60 * 1000;
-const pockets: Pocket[] = ['maker','taker','inventory'];
 const tokens = {A:config.contracts.tokenA as Address,B:config.contracts.tokenB as Address};
 export function snapshotOf(owner:Address, tree:PrivateTree, wallets:Record<Pocket,PrivateViewWallet>):BrowserPrivateSnapshot {
+  const pockets = Object.keys(wallets);
   return {owner,root:tree.getRoot() as Hex,
     addresses:Object.fromEntries(pockets.map(name=>[name,encodeAddress({...wallets[name].address,chain:{type:0,id:1337}})])) as BrowserPrivateSnapshot['addresses'],
     balances:Object.fromEntries(pockets.map(name=>[name,Object.fromEntries(Object.entries(tokens).map(([asset,token])=>[asset,formatUnits(balance(wallets[name],token),18)]))])) as BrowserPrivateSnapshot['balances'],
@@ -31,7 +31,7 @@ export function startViewSession(owner:Address,tree:PrivateTree,views:Record<Poc
     refreshing=true;
     try {
       await tree.sync();
-      const wallets=Object.fromEntries(pockets.map(name=>[name,views[name].wallet])) as Record<Pocket,PrivateViewWallet>;
+      const wallets=Object.fromEntries(Object.entries(views).map(([name,view])=>[name,view.wallet])) as Record<Pocket,PrivateViewWallet>;
       for(const wallet of Object.values(wallets))await scan(wallet,tree);
       if(!closed)self.postMessage({id,snapshot:snapshotOf(owner,tree,wallets)});
     } catch {if(!closed)self.postMessage({id,error:'Could not refresh private balances. Check the gateway.'});}

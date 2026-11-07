@@ -98,7 +98,9 @@ export function PrivatePanel({app,onInspect,onRunning}: {app:ReturnType<typeof u
     const destination=recipient||owner||'';
     if(action==='unshield'&&(!/^0x[0-9a-fA-F]{40}$/.test(destination)||/^0x0{40}$/.test(destination))){setError('Enter a nonzero public recipient.');return;}
     if(action==='swap'&&snapshot?.spendable.inventory.A&&parseUnits(output,18)>parseUnits(snapshot.spendable.inventory.A,18)){setError('The quoted output exceeds the largest FPA note in your inventory. Reduce the swap amount.');return;}
-    setReview({action,wallet:action==='swap'?swapWallet:wallet,receiver,token,amount,...(action==='swap'?{expectedOutput:output}:{}),...(action==='unshield'?{recipient:destination}:{}),...(action==='transfer'&&external?{privateRecipient}:{})});
+    setReview({action,wallet:action==='add-inventory'?'maker':action==='remove-inventory'?'inventory':action==='swap'?swapWallet:wallet,
+      receiver:action==='add-inventory'?'inventory':action==='remove-inventory'?'maker':receiver,
+      token,amount,...(action==='swap'?{expectedOutput:output}:{}),...(action==='unshield'?{recipient:destination}:{}),...(action==='transfer'&&external?{privateRecipient}:{})});
   }
   if(app.network.id!=='devnet')return <section className="privacy-panel"><p className="defi-banner">Select {frameNetworks.devnet.name} to use your private wallet.</p></section>;
   if(!quantum||!app.walletDeployed)return <section className="privacy-panel"><article className="defi-card"><h2>Your private wallet starts with your passkey</h2><p>Use a PRF-capable passkey to derive your private wallet keys in the browser. Your ETHFalcon smart wallet authorizes every submitted batch.</p><button className="defi-primary" disabled={disabled} onClick={()=>void app.task(quantum?app.deployWallet:app.createPasskey)}>{quantum?'Deploy your quantum wallet':'Create a passkey wallet'}</button><p className="defi-small">Already have a wallet? Import its public metadata from the Swap page, then return here. The original passkey is still required.</p></article></section>;

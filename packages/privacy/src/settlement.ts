@@ -13,13 +13,7 @@ export const privateSwapInterface = new Interface([
   `function privateSwap(${railgunInterface.getFunction('transact')!.inputs[0].format('full')}, bytes32 tradeId, uint64 deadline, bytes32 payment0, bytes32 payment1)`,
   'function conditions(bytes32 tradeId, uint64 deadline, bytes32 payment0, bytes32 payment1) view returns (bytes32)',
 ]);
-export function quoteExactIn(amountIn: bigint, reserveOut: bigint, reserveIn: bigint): bigint {
-  check(amountIn > 0n && reserveOut > 0n && reserveIn > 0n, 'Amount and reserves must be positive');
-  check([amountIn, reserveOut, reserveIn].every((n) => n < 1n << 120n), 'Amounts must fit uint120');
-  const amountOut = amountIn * reserveOut / (reserveIn + amountIn);
-  check(amountOut > 0n, 'Quote rounds to zero');
-  return amountOut;
-}
+export { quoteExactIn } from './quote.js';
 export function swapConditions(chainId: bigint, adapter: Address, pool: Address, quote: Quote): Hex {
   check(chainId > 0n && isAddress(adapter) && isAddress(pool), 'Invalid settlement domain');
   check(quote.deadline > 0n && quote.deadline < 1n << 64n, 'Deadline must fit uint64');

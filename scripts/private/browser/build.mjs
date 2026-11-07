@@ -10,7 +10,7 @@ const require = createRequire(resolve(root, 'packages/privacy/package.json'));
 const engine = dirname(require.resolve('@railgun-community/engine'));
 const polyfillRequire = createRequire(require.resolve('esbuild-plugin-polyfill-node'));
 const engineRequire = createRequire(resolve(engine, 'index.js'));
-const output = resolve(root, 'apps/poc/public/privacy');
+const output = resolve(root, process.argv.includes('--web') ? 'apps/web/public/privacy' : 'apps/poc/public/privacy');
 await mkdir(output, { recursive: true });
 // Install missing artifacts using the existing pinned-download verifier; no contracts are deployed.
 const { prepareArtifacts } = await import('../artifacts.ts');

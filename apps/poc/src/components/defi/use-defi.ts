@@ -1,12 +1,13 @@
 "use client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createPublicClient, encodeFunctionData, http, isAddress, keccak256, type Address, type Hex } from "viem";
+import { createPublicClient, encodeFunctionData, parseAbi, http, isAddress, keccak256, type Address, type Hex } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { frame, getProfile, privateKeyToFrameSigner, txHash, type FrameTx, registerPasskey, signWithPasskey, passkeyChallenge, passkeyFactoryArgs, passkeyFactoryAbi, passkeyWalletAbi, type PasskeyCredential, type WalletCall } from "@framepay/sdk";
 import deployments from "../../../../../config/defi.json";
 import { quantumWalletAbi, quantumFactoryAbi, quantumFactoryArgs, quantumChallenge, falconKeyHash, validateFalconKey, registerQuantumPasskey, signWithQuantumPasskey, type QuantumCredential } from "@framepay/sdk";
 import quantumDeployments from "../../../../../config/quantum.json";
 import passkeyDeployments from "../../../../../config/passkeys.json";
+import privateDeployment from "../../../../../config/private-wallet.json";
 import paymasters from "../../../../../config/paymasters.json";
 import { useNetwork } from "../network";
 import { frameClient, rpc } from "@/lib/rpc";
@@ -272,6 +273,34 @@ export function useDefi() {
     } catch (err) { setError(errorMessage(err)); }
     finally { busyRef.current = false; if (mounted.current) setBusy(false); }
   }
+  /** A public faucet grant moves only faucet-owned test tokens; no private-wallet unlock is needed. */
+  async function claimPrivateTokens() {
+    if (!wallet || !walletDeployed || !ready || network.id !== "devnet") throw new Error("Deploy your quantum wallet on Framecraft devnet first.");
+    const faucet = privateDeployment.faucet;
+    if (wallet.networkDomain !== privateDeployment.genesisHash || keccak256(await rpc<Hex>("eth_getCode", [faucet.address, "latest"], network.id)) !== faucet.codeHash)
+      throw new Error("The recorded private faucet does not match this devnet.");
+    const abi = parseAbi(["function claim(address wallet)", "function nextClaimAt(address) view returns (uint256)"]);
+    const next = await publicClient.readContract({address:faucet.address as Address,abi,functionName:"nextClaimAt",args:[wallet.address]});
+    const block = await rpc<{timestamp:Hex}>("eth_getBlockByNumber",["latest",false],network.id);
+    if (next > BigInt(block.timestamp)) throw new Error(`This wallet already received its faucet grant. Claim again after ${new Date(Number(next)*1000).toLocaleString()}.`);
+    const relayKey = ensureRelayKey();
+    const client = frameClient(network.id);
+    const transaction = await relayTransaction([{to:faucet.address as Address,data:encodeFunctionData({abi,functionName:"claim",args:[wallet.address]})}],true);
+    const signed = await client.signFrameTransaction({transaction,signer:privateKeyToFrameSigner(relayKey)});
+    const entry: Activity = {hash:txHash(getProfile("ethrex-eip8141-tracer"),signed),title:"Private faucet · 1,000 FPA + 1,000 FPB",status:"pending",frameCount:signed.frames.length,at:Date.now()};
+    safeStore(localStorage,`${storageKey}:activity`,[entry,...activity.filter(item=>item.hash!==entry.hash)].slice(0,30));
+    remember(entry);setPending(entry);
+    try {
+      await client.sendFrameTransaction({transaction:signed});
+      setNotice("Faucet submitted. Waiting for 1,000 FPA and 1,000 FPB in your smart wallet…");
+      abort.current = new AbortController();
+      await client.waitForFrameReceipt({hash:entry.hash,expectedFrameCount:entry.frameCount,signal:abort.current.signal});
+      if (!mounted.current) return;
+      remember({...entry,status:"confirmed"});setPending(null);
+      setNotice("Faucet confirmed: 1,000 FPA and 1,000 FPB sent to your smart wallet.");
+      await refresh();
+    } catch (error) {setNotice("Inspect the saved faucet transaction before requesting another grant.");throw error;}
+  }
   async function confirm() {
     if (!review || !key || busyRef.current) return;
     const intent = review;
@@ -318,5 +347,5 @@ export function useDefi() {
   }
   return { network, deployment, sponsor, account, ready, busy, locked, error, setError, notice, setNotice,
     review, setReview, pending, activity, positions, savePosition, balances, claimed, publicClient, wallet, walletDeployed, relayAddress: relayAccount?.address, createPasskey, deployWallet,
-    refreshVersion, storageKey, refresh, createAccount, exportAccount, importAccount, task, prepare, confirm, inspect };
+    refreshVersion, storageKey, refresh, claimPrivateTokens, createAccount, exportAccount, importAccount, task, prepare, confirm, inspect };
 }

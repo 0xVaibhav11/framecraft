@@ -272,19 +272,19 @@ Bun installs and links **five workspaces**: the two applications, SDK, privacy l
 
 ### Tests and integration checks
 
-| Command | Purpose / prerequisites |
-| --- | --- |
-| `bun run test` | SDK and app-policy tests; some checks require the pinned sibling workshop checkout |
-| `bun run contracts:test` | Core paymaster and settlement tests using Foundry |
-| `bun run aqua:test` | Recurring orders, transfer guards, and wallet tests; prepare pinned sources and Falcon signer first |
-| `bun run private:test` | Privacy TypeScript checks and tests |
-| `bun run private:contracts:test` | Private contract tests and SwapVM runtime-size checks after `private:setup` |
-| `bun run private:test:proofs` | Real RAILGUN/Groth16 proof tests using Foundry FFI; no running devnet needed |
-| `bun run web:test:privacy` | EVML privacy module parsing and execution tests |
-| `bun run quantum:browser-check` | PRF derivation and browser signer checks with a virtual authenticator |
-| `bun run private:browser:check` | Private UI regression against the app and real devnet |
-| `bun run devnet:inspect` | Inspect the configured local workshop/devnet setup |
-| `bun run transaction:inspect -- devnet 0x<transaction-hash>` | Inspect an individual devnet transaction |
+## Deploy the Astro app to Vercel
+
+Import this repository with **Root Directory `.`** and **Node.js 24.x**. The root
+[`vercel.json`](vercel.json) pins Bun 1.3.6, builds only the Astro application and
+its web dependencies, and publishes `apps/web/dist`. No environment variables,
+Foundry installation, or Emscripten toolchain are required for this deployment.
+
+The web build verifies the checked-in public Falcon signer and prepares the
+privacy workers, circuit files, and Monaco assets. First builds need network
+access for pinned upstream dependencies. See the [Vercel deployment guide](docs/vercel.md)
+for exact settings, local verification, RPC requirements, and passkey origins.
+
+## Git checks
 
 Browser checks need their documented browser/Playwright prerequisites. Live demos such as `bun run aqua:demo` and `bun run private:demo` require a compatible running gateway, test funds, and the feature-specific setup. Use `FRAMEPAY_PRIVATE_RPC` to explicitly select a remote HTTPS gateway for the private CLI; its default is local.
 

@@ -15,6 +15,7 @@ import Privacy from "../lib/privacy/module";
 import { PrivateScriptRuntime, type PrivateRuntimeState } from "../lib/privacy/runtime";
 import { PrivateScriptWalletPanel } from "./private-script-wallet";
 import { hasPrivateFrames } from '../lib/privacy/frame-plan';
+import { loadFrameHistory, saveFrameHistory } from '../lib/evml-history';
 
 // EVML with the `frame` module registered directly, so `load frame` works
 // without EVMcrispr's experimental flag. `std` (exec, batch, set, …) is built in.
@@ -102,7 +103,11 @@ export default function EvmlEditor() {
   const [funding, setFunding] = useState(false);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState("");
-  const [sent, setSent] = useState<SentFrameTransaction[]>([]);
+  const [history, setHistory] = useState<Partial<Record<FrameNetworkId, SentFrameTransaction[]>>>({});
+  const sent = history[networkId] ?? [];
+  useEffect(() => {
+    setHistory(current => ({ ...current, [networkId]: current[networkId] ?? loadFrameHistory(networkId) }));
+  }, [networkId]);
   const [privateState, setPrivateState] = useState<PrivateRuntimeState>({ viewing: false });
   const [privateFeedback, setPrivateFeedback] = useState<{ message: string; error?: boolean }>({ message: '' });
   const [privateAction, setPrivateAction] = useState<string | null>(null);
@@ -147,7 +152,6 @@ export default function EvmlEditor() {
     signer.current = privateKeyToFrameSigner(generatePrivateKey());
     setAddress(signer.current.address);
     setBalance(null);
-    setSent([]);
     setError("");
     void refreshBalance(signer.current.address);
   }, [refreshBalance]);
@@ -182,17 +186,27 @@ export default function EvmlEditor() {
   }
 
   const transports = useMemo(() => ({ [environment.chainId]: transportOf(networkId) }), [environment.chainId, networkId]);
-  const record = useCallback((update: SentFrameTransaction) => {
-    setSent((list) => [update, ...list.filter((item) => item.hash !== update.hash)]);
+  const remember = useCallback((network: FrameNetworkId, update: SentFrameTransaction) => {
+    setHistory(current => {
+      const list = current[network] ?? loadFrameHistory(network);
+      const previous = list.find(item => item.hash === update.hash);
+      const entry = { ...previous, ...update, ...(update.receipt ? { error: undefined, outcome: undefined } : {}) };
+      const next = [entry, ...list.filter(item => item.hash !== update.hash)].slice(0, 30);
+      saveFrameHistory(network, next);
+      return { ...current, [network]: next };
+    });
   }, []);
+  const record = useCallback((update: SentFrameTransaction) => remember(networkId, update), [networkId, remember]);
+  // Private submissions and restored pending transactions always belong to devnet.
+  const recordPrivate = useCallback((update: SentFrameTransaction) => remember('devnet', update), [remember]);
   useEffect(() => {
-    const runtime = new PrivateScriptRuntime(setPrivateState, record);
+    const runtime = new PrivateScriptRuntime(setPrivateState, recordPrivate);
     privateRuntime.current = runtime;
     try { runtime.restore(); } catch (err) { setError(errorText(err)); }
     const lock = () => { runController.current?.abort(); runtime.lock(); };
     window.addEventListener('pagehide', lock);
     return () => { window.removeEventListener('pagehide', lock); lock(); privateRuntime.current = null; };
-  }, [record]);
+  }, [recordPrivate]);
   useEffect(() => { privateRuntime.current?.lock(); }, [networkId]);
 
   async function privateTask(action: 'create' | 'deploy' | 'faucet' | 'inspect') {
@@ -339,12 +353,12 @@ export default function EvmlEditor() {
           <section className="evml-card">
             <h2>Sent frame transactions <span className="evml-badge">{sent.length}</span></h2>
             {sent.length === 0 ? (
-              <p className="evml-hint">Nothing sent yet from this account.</p>
+              <p className="evml-hint">No saved transactions on this network yet.</p>
             ) : (
               <ul className="evml-sent">
                 {sent.map((item) => {
-                  const state = item.receipt ? (item.receipt.status === "0x1" ? "ok" : "failed") : item.error ? "failed" : "";
-                  const label = item.receipt ? (item.receipt.status === "0x1" ? "Included" : "Reverted") : item.error ? "Unknown" : "Pending";
+                  const state = item.receipt ? (item.receipt.status === "0x1" ? "ok" : "failed") : item.outcome === 'rejected' || item.error ? "failed" : "";
+                  const label = item.receipt ? (item.receipt.status === "0x1" ? "Included" : "Reverted") : item.outcome === 'rejected' ? 'Rejected' : item.error ? "Unknown" : "Pending";
                   return (
                     <li key={item.hash}>
                       <span className={`evml-status ${state}`}>{label}</span>

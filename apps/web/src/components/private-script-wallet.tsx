@@ -38,7 +38,7 @@ export function PrivateScriptWalletPanel({ state, runtime, disabled, onTask, onE
         <button className="evml-link" disabled={disabled || !!state.pending}>Import metadata</button>
       </form>
     </details>
-    {state.pending && <p className="evml-hint">Pending: <code>{state.pending.hash}</code> <button className="evml-link" disabled={disabled} onClick={() => onTask('inspect')}>Inspect receipt</button></p>}
+    {state.pending && <p className="evml-hint">Pending: <code>{state.pending.hash}</code> <button className="evml-link" disabled={disabled} onClick={() => onTask('inspect')}>Inspect transaction</button></p>}
     {state.snapshot && <div className="evml-hint">{Object.entries(state.snapshot.balances).map(([pocket, balance]) => <p key={pocket}><strong>{pocket}</strong>: {balance.A} FPA · {balance.B} FPB</p>)}</div>}
     <div className="evml-actions">
       <button className="evml-link" disabled={disabled} onClick={onExample}>Load private script example</button>

@@ -10,7 +10,7 @@ import { frameClient } from "./frame-rpc";
 /** The fees the DeFi app uses on this devnet. */
 const FEES = { maxFeePerGas: 2_000_000n, maxPriorityFeePerGas: 1_000_000n };
 
-export type SentFrameTransaction = { hash: Hex; frameCount: number; receipt?: FrameReceipt; error?: string };
+export type SentFrameTransaction = { hash: Hex; frameCount: number; receipt?: FrameReceipt; error?: string; outcome?: 'rejected' };
 
 export function makeFrameHandler({ networkId, signer, onUpdate }: {
   networkId: FrameNetworkId;

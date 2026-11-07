@@ -229,7 +229,7 @@ test('runtime refuses canonical/private-account/wrong-sender frame plans before 
   await assert.rejects(() => runtime.frameHandler('devnet', signer)({ ...action, from: '0x2222222222222222222222222222222222222222' }, ctx), /test account/);
 });
 
-for (const outcome of ['success', 'reverted', 'unknown']) test(`frame runtime records ${outcome} and releases only confirmed submissions`, async () => {
+for (const outcome of ['success', 'recovered', 'reverted', 'rejected', 'unknown']) test(`frame runtime records ${outcome} and releases settled submissions`, async () => {
   const action = await composed(`frame:tx (
     privacy:transfer A "1" taker
     exec 0x3333333333333333333333333333333333333333 "claim()"
@@ -270,11 +270,14 @@ for (const outcome of ['success', 'reverted', 'unknown']) test(`frame runtime re
       assert.ok(wire.frames.every((f: { data: string }) => !isPrivateFrameData(f.data)));
       assert.equal(decodeFunctionData({ abi: quantumWalletAbi, data: wire.frames[1].data }).functionName, 'execute');
       assert.equal(decodeFunctionData({ abi: quantumWalletAbi, data: wire.frames[3].data }).functionName, 'execute');
-      if (outcome === 'unknown') return Response.json({ jsonrpc: '2.0', id: request.id, error: { code: -32000, message: 'Submission response lost' } });
+      if (outcome === 'unknown' || outcome === 'rejected' || outcome === 'recovered') return Response.json({ jsonrpc: '2.0', id: request.id, error: { code: -32000, message: 'Submission failed' } });
       value = expectedHash;
-    } else if (request.method === 'eth_getTransactionReceipt') value = {
+    } else if (request.method === 'eth_getTransactionReceipt') value = outcome === 'unknown' || outcome === 'rejected' ? null : {
       transactionHash: expectedHash, blockHash: `0x${'ab'.repeat(32)}`, blockNumber: '0x10', status: outcome === 'reverted' ? '0x0' : '0x1', frameReceipts: Array.from({ length: 4 }, (_, index) => ({ status: outcome === 'reverted' && index === 3 ? '0x0' : '0x1' })),
-    }; else throw new Error(`Unexpected RPC: ${request.method}`);
+    };
+    else if (request.method === 'skandha_explorer_getTransaction') value = { hash: expectedHash, admission: outcome === 'rejected'
+      ? { txHash: expectedHash, outcome: 'rejected', checks: [{ rule: 'gas-limit', verdict: 'fail' }] } : null };
+    else throw new Error(`Unexpected RPC: ${request.method}`);
     return Response.json({ jsonrpc: '2.0', id: request.id, result: value });
   };
   const signer: FrameSigner = { address: realSigner.address, sign: async input => {
@@ -282,10 +285,46 @@ for (const outcome of ['success', 'reverted', 'unknown']) test(`frame runtime re
   } };
   try {
     const submit = () => runtime.frameHandler('devnet', signer)(action, { onLog: () => {} } as ActionHandlerCtx);
-    if (outcome === 'success') await submit(); else await assert.rejects(submit);
+    if (outcome === 'success' || outcome === 'recovered') await submit(); else await assert.rejects(submit);
     assert.equal(prepares, 1); assert.equal(signatures, 1); assert.equal(sends, 1);
     assert.equal(storage.size, outcome === 'unknown' ? 1 : 0);
     assert.equal(!!runtime.state.pending, outcome === 'unknown');
+    if (outcome === 'rejected' || outcome === 'reverted') {
+      await assert.rejects(submit, outcome === 'rejected' ? /rejected.*gas-limit/i : /reverted/i);
+      assert.equal(sends, 2, 'a settled failure must not prevent the next submission');
+    }
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalStorage) Object.defineProperty(globalThis, 'localStorage', originalStorage); else delete globalThis.localStorage;
+  }
+});
+
+for (const outcome of ['rejected', 'accepted', 'dropped', 'replaced', 'missing', 'unavailable']) test(`inspection reconciles a saved ${outcome} admission without a receipt`, async () => {
+  const hash = '0x03802b447628601d7f30cf189e1e2911a591fa781d32ddc0af4fb9f7d49f06ad';
+  const pending = { hash, frameCount: 5 } as const;
+  const originalFetch = globalThis.fetch;
+  const originalStorage = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+  let removed = false;
+  const updates: Array<{ hash: string; error?: string; outcome?: string }> = [];
+  Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: { removeItem: () => { removed = true; } } });
+  globalThis.fetch = async (_input, init) => {
+    const request = JSON.parse(String(init?.body));
+    let result: unknown;
+    if (request.method === 'eth_chainId') result = '0x539';
+    else if (request.method === 'eth_getTransactionReceipt') result = null;
+    else if (request.method === 'skandha_explorer_getTransaction') {
+      if (outcome === 'unavailable') throw new Error('Explorer unavailable');
+      result = { hash, admission: outcome === 'missing' ? null : { txHash: hash, outcome, checks: [{ rule: 'gas-limit', verdict: 'fail' }] } };
+    } else throw new Error(`Unexpected RPC: ${request.method}`);
+    return Response.json({jsonrpc:'2.0',id:request.id,result});
+  };
+  try {
+    const runtime = new PrivateScriptRuntime(() => {}, update => updates.push(update));
+    runtime.state.pending = pending;
+    await assert.rejects(() => runtime.inspect(), outcome === 'rejected' ? /rejected.*gas-limit/i : /pending|unknown/i);
+    assert.equal(removed, outcome === 'rejected');
+    assert.equal(!!runtime.state.pending, outcome !== 'rejected');
+    if (outcome === 'rejected') assert.equal(updates.at(-1)?.outcome, 'rejected');
   } finally {
     globalThis.fetch = originalFetch;
     if (originalStorage) Object.defineProperty(globalThis, 'localStorage', originalStorage); else delete globalThis.localStorage;

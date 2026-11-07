@@ -1,5 +1,5 @@
 import {
-  frame, frameNetworks, FramePayError, getProfile, quantumFactoryAbi, quantumFactoryArgs,
+  frame, frameNetworks, getProfile, quantumFactoryAbi, quantumFactoryArgs,
   quantumWalletAbi, registerQuantumPasskey, validateFalconKey, txHash,
   type FrameSigner, type QuantumCredential, type Frame,
 } from '@framepay/sdk';
@@ -165,7 +165,7 @@ export class PrivateScriptRuntime {
     const pending = { hash: txHash(profile, signed), frameCount: signed.frames.length };
     // Persist before submission: a timeout or reload must never lose the possible transaction hash.
     localStorage.setItem(`${storageKey}:pending`, JSON.stringify(pending));
-    this.state.pending = pending; this.publish(); this.record(pending);
+    this.state.pending = pending; this.publish(); this.record({ ...pending, error: undefined, outcome: undefined });
     ctx.onLog(`Private transaction ${pending.hash} prepared; submitting…`);
     try {
       await client.sendFrameTransaction({ transaction: signed });
@@ -176,12 +176,13 @@ export class PrivateScriptRuntime {
       this.clearPending();
       return receipt;
     } catch (error) {
-      if (error instanceof FramePayError && error.code === 'FRAME_REVERTED') {
-        let inspectionError: unknown;
-        try { await this.inspect(); } catch (cause) { inspectionError = cause; }
-        // A validated mined receipt settles the journal even when execution failed.
-        if (!this.state.pending) throw inspectionError ?? error;
-      }
+      let inspectionError: unknown;
+      try {
+        // A lost submission response can still have a receipt or an explicit rejection.
+        const receipt = await this.inspect();
+        if (receipt) return receipt;
+      } catch (cause) { inspectionError = cause; }
+      if (!this.state.pending) throw inspectionError ?? error;
       const reason = error instanceof Error ? error.message.slice(0, 180) : 'Unknown submission error';
       const message = `Private submission needs inspection: ${pending.hash}. Do not rerun until its receipt is checked. ${reason}`;
       this.record({ ...pending, error: message });
@@ -192,13 +193,30 @@ export class PrivateScriptRuntime {
   async inspect() {
     const pending = this.state.pending;
     if (!pending) return;
-    const receipt = await frameClient('devnet').getFrameReceipt({ hash: pending.hash });
-    if (!receipt) throw new Error(`Still pending or unknown: ${pending.hash}.`);
+    const client = frameClient('devnet');
+    const receipt = await client.getFrameReceipt({ hash: pending.hash });
+    if (!receipt) {
+      // Rejected envelopes never get a receipt. Missing admission history alone
+      // cannot prove rejection: a timeout or dropped entry may still execute.
+      const admission = await client.getFrameAdmission({ hash: pending.hash }).catch(() => undefined);
+      if (this.state.pending?.hash !== pending.hash) return;
+      if (admission?.available && admission.outcome === 'rejected') {
+        const failedRules = admission.checks.filter(check => check.verdict === 'fail').map(check => check.rule);
+        const hint = failedRules.includes('gas-limit') ? ' Check the gas limits or use fewer private operations per frame:tx block.' : '';
+        const message = `Transaction rejected by the gateway${failedRules.length ? ` (${failedRules.join(', ')})` : ''}: ${pending.hash}.${hint} The pending lock has been cleared; you can submit a new transaction.`;
+        this.record({ ...pending, outcome: 'rejected', error: message });
+        this.clearPending();
+        throw new Error(message);
+      }
+      throw new Error(`Still pending or unknown: ${pending.hash}.`);
+    }
+    if (this.state.pending?.hash !== pending.hash) return;
     if (receipt.frameReceipts.length !== pending.frameCount) throw new Error('Unexpected frame receipt count.');
     this.record({ ...pending, receipt }); this.clearPending();
     const failed = receipt.frameReceipts.flatMap((frame, index) => frame.status !== '0x1' ? [index + 1] : []);
     if (receipt.status !== '0x1' || failed.length) throw new Error(`Transaction reverted${failed.length ? ` in frame(s) ${failed.join(', ')}` : ''}: ${pending.hash}. The pending lock has been cleared.`);
     await this.refreshWalletDeployment();
+    return receipt;
   }
   async deploy(signer: FrameSigner, signal: AbortSignal, log: (message: string) => void) {
     const wallet = this.wallet(); this.assertIdle(signal);
@@ -251,7 +269,9 @@ export class PrivateScriptRuntime {
         throw new Error('Private frame authorization expired or the wallet nonce changed.');
       // Later wallet nonces are consecutive and are verified by wallet.execute as the frames execute.
       const receipt = await this.sendFrames(toFrames(specs, layoutBudgets), signer, ctx);
-      ctx.onLog(`Frame transaction ${receipt.transactionHash} confirmed on the alt mempool (${requests.length} private operations, ${specs.length} frames).`);
+      ctx.onLog(`:success:Private frame transaction ${receipt.transactionHash} confirmed in block ${BigInt(receipt.blockNumber)} (${requests.length} private operations, ${specs.length} frames).`);
+      receipt.frameReceipts.forEach(({ status }, index) =>
+        ctx.onLog(`${status === '0x1' ? ':success:' : ':warning:'}Frame ${index + 1} (${specs[index]?.mode ?? '?'}): ${status === '0x1' ? 'succeeded' : 'failed'}`));
       try { this.state.snapshot = await this.session.refresh(); this.publish(); }
       catch { this.state.snapshot = undefined; this.publish(); ctx.onLog('Confirmed; run privacy:scan to refresh balances.'); }
       return receipt;
@@ -288,7 +308,7 @@ export class PrivateScriptRuntime {
       this.state.snapshot = result.snapshot; this.publish();
       if (intent.action === 'scan') { this.logSnapshot(result.snapshot, ctx.onLog); return; }
       const receipt = await this.submit(result, signer, ctx);
-      ctx.onLog(`Private ${intent.action} confirmed: ${receipt.transactionHash}`);
+      ctx.onLog(`:success:Private ${intent.action} confirmed in block ${BigInt(receipt.blockNumber)}: ${receipt.transactionHash}`);
       // A refresh failure must not make a successful spend look failed or invite replay.
       try { this.state.snapshot = await this.session.refresh(); this.publish(); }
       catch { this.state.snapshot = undefined; this.publish(); ctx.onLog('Transaction confirmed; run privacy:scan to refresh balances.'); }

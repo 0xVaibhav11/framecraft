@@ -77,3 +77,21 @@ export async function signWithQuantumPasskey(credential: QuantumCredential, chal
   if (falconKeyHash(result.publicKey) !== falconKeyHash(credential.falconPublicKey) || !result.salt || !result.signature) throw new Error('The PRF-derived Falcon key differs from this wallet.');
   return { falconSalt: result.salt, falconSignature: result.signature.map(BigInt) };
 }
+
+/** Separate privacy entropy. Neither this entropy nor the Falcon PRF seed may be stored or sent to a server. */
+export async function unlockQuantumPrivacy(credential: QuantumCredential, networkDomain: Hex, wallet: Hex): Promise<ArrayBuffer> {
+  validateFalconKey(credential.falconPublicKey);
+  if (!/^0x[\da-fA-F]{64}$/.test(networkDomain) || !/^0x[\da-fA-F]{40}$/.test(wallet)) throw new Error('Invalid private wallet domain.');
+  const { seed } = await prfApproval(credential, bytesToHex(crypto.getRandomValues(new Uint8Array(32))));
+  let entropy: ArrayBuffer | undefined;
+  try {
+    const key = await crypto.subtle.importKey('raw', seed, 'HKDF', false, ['deriveBits']);
+    entropy = await crypto.subtle.deriveBits({ name: 'HKDF', hash: 'SHA-256', salt: new Uint8Array(hexToBytes(networkDomain)),
+      info: new TextEncoder().encode(`FramePay.PrivateWallet.v1:${wallet.toLowerCase()}`) }, key, 256);
+    // Check the selected credential still derives the recorded ETHFalcon owner.
+    const owner = await runFalcon(seed);
+    if (falconKeyHash(owner.publicKey) !== falconKeyHash(credential.falconPublicKey)) throw new Error('The passkey does not own this quantum wallet.');
+    return entropy;
+  } catch (error) { if (entropy) new Uint8Array(entropy).fill(0); throw error; }
+  finally { if (seed.byteLength) new Uint8Array(seed).fill(0); }
+}

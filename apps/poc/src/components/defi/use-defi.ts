@@ -14,6 +14,8 @@ import { frameClient, rpc } from "@/lib/rpc";
 import { frameBudgets } from "@/lib/frame-budgets";
 import { tokenAbi, type AppDeployment, type Position } from "@/lib/defi-contracts";
 
+import type { BrowserPrivateResult } from "../../../../../scripts/private/browser/types";
+
 export type AppCall = { to: Address; data: Hex; value?: bigint };
 export type Activity = { hash: Hex; title: string; status: "pending" | "confirmed" | "failed"; frameCount: number; at: number };
 type PasskeyWallet = PasskeyCredential & { address: Address; networkDomain: Hex; factory: Address; falconPublicKey?: Hex[] };
@@ -301,6 +303,33 @@ export function useDefi() {
       await refresh();
     } catch (error) {setNotice("Inspect the saved faucet transaction before requesting another grant.");throw error;}
   }
+  async function submitPrivateOperation(result: BrowserPrivateResult, title: string, signal: AbortSignal) {
+    if (busyRef.current || review || pending || !ready || !wallet?.falconPublicKey || !walletDeployed || network.id !== "devnet") throw new Error("The wallet is not ready for a private submission.");
+    const auth = result.authorization;
+    if (!auth || !result.deadline || auth.owner.toLowerCase() !== wallet.address.toLowerCase() || auth.networkDomain !== wallet.networkDomain) throw new Error("Private authorization belongs to another wallet or chain.");
+    const calls=result.calls.map(call=>({target:call.to,value:0n,data:call.data}));
+    if (quantumChallenge({chainId:1337n,wallet:wallet.address,networkDomain:wallet.networkDomain,nonce:auth.nonce,deadline:BigInt(result.deadline),calls}) !== auth.challenge) throw new Error("The private batch changed after approval.");
+    busyRef.current=true;setBusy(true);setError("");
+    let entry:Activity|undefined;
+    try {
+      signal.throwIfAborted();
+      const args=[calls,auth.nonce,BigInt(result.deadline),auth.proof] as const;
+      if(!await publicClient.readContract({address:wallet.address,abi:quantumWalletAbi,functionName:"verify",args})) throw new Error("Private authorization expired or the wallet changed. Review and approve a new action.");
+      const client=frameClient(network.id),relayKey=ensureRelayKey();
+      const transaction=await relayTransaction([{to:wallet.address,data:encodeFunctionData({abi:quantumWalletAbi,functionName:"execute",args})}],true);
+      const signed=await client.signFrameTransaction({transaction,signer:privateKeyToFrameSigner(relayKey)});
+      signal.throwIfAborted();
+      entry={hash:txHash(getProfile("ethrex-eip8141-tracer"),signed),title,status:"pending",frameCount:signed.frames.length,at:Date.now()};
+      safeStore(localStorage,`${storageKey}:activity`,[entry,...activity.filter(item=>item.hash!==entry!.hash)].slice(0,30));
+      remember(entry);setPending(entry);setNotice("Private batch signed. Submitting and waiting for confirmation…");
+      await client.sendFrameTransaction({transaction:signed});
+      await client.waitForFrameReceipt({hash:entry.hash,expectedFrameCount:entry.frameCount,signal});
+      if(!mounted.current)return;
+      remember({...entry,status:"confirmed"});setPending(null);setNotice(`${title} confirmed. All frames succeeded.`);
+      await refresh();
+    } catch(error){if(entry)setNotice("Inspect the saved transaction before another submission.");throw error;}
+    finally{busyRef.current=false;if(mounted.current)setBusy(false);}
+  }
   async function confirm() {
     if (!review || !key || busyRef.current) return;
     const intent = review;
@@ -347,5 +376,5 @@ export function useDefi() {
   }
   return { network, deployment, sponsor, account, ready, busy, locked, error, setError, notice, setNotice,
     review, setReview, pending, activity, positions, savePosition, balances, claimed, publicClient, wallet, walletDeployed, relayAddress: relayAccount?.address, createPasskey, deployWallet,
-    refreshVersion, storageKey, refresh, claimPrivateTokens, createAccount, exportAccount, importAccount, task, prepare, confirm, inspect };
+    refreshVersion, storageKey, refresh, claimPrivateTokens, submitPrivateOperation, createAccount, exportAccount, importAccount, task, prepare, confirm, inspect };
 }

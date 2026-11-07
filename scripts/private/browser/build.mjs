@@ -29,6 +29,7 @@ for (const [pkg, file] of [['@railgun-community/poseidon-hash-wasm', 'poseidon_h
 await build({ mainFields: ['browser','module','main'], entryPoints: [resolve(root, 'scripts/private/browser/worker.ts')], outfile: resolve(output,'worker.mjs'), bundle: true, platform:'browser', format:'esm', target:'es2022', minify: true,
   define: { 'process.env.NODE_ENV':'"production"', global:'globalThis' },
   plugins: [{ name:'privacy-browser-engine', setup(build) {
+    build.onResolve({filter:/^\.\/falcon\.mjs$/}, args => args.importer.endsWith('/scripts/quantum/worker.mjs') ? {path:'/ethfalcon/falcon.mjs',external:true} : undefined);
     build.onResolve({filter:/^(node:)?assert$/}, () => ({path:'assert',namespace:'cjs-compat'}));
     build.onLoad({filter:/.*/,namespace:'cjs-compat'}, () => ({contents:`import assert from ${JSON.stringify(resolve(polyfillRequire.resolve('@jspm/core/nodelibs/assert'),'../../browser/assert.js'))}; module.exports = assert;`,loader:'js',resolveDir:root}));
     build.onResolve({filter:/^@railgun-community\/engine$/}, () => ({path:resolve(engine,'index.js')}));

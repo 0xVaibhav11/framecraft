@@ -49,6 +49,17 @@ export function runFalcon(seed: ArrayBuffer, challenge?: Hex): Promise<FalconRes
     } catch (error) { clearTimeout(timer); worker?.terminate(); if (seed.byteLength) new Uint8Array(seed).fill(0); reject(error); }
   });
 }
+/** Copy a 32-byte PRF output into a fresh ArrayBuffer the page owns, then wipe the source.
+ * Browsers differ in what they return (Firefox can hand back a typed array), and only an owned
+ * ArrayBuffer can go in the worker's postMessage transfer list. */
+export function ownedPrfSeed(raw: BufferSource | undefined): ArrayBuffer | undefined {
+  if (!raw) return undefined;
+  const source = ArrayBuffer.isView(raw) ? new Uint8Array(raw.buffer, raw.byteOffset, raw.byteLength) : new Uint8Array(raw);
+  if (source.byteLength !== 32) return undefined;
+  const seed = source.slice().buffer;
+  source.fill(0);
+  return seed;
+}
 async function prfApproval(credential: PasskeyCredential, challenge: Hex, signal?: AbortSignal) {
   if (!globalThis.isSecureContext || typeof window === 'undefined' || window.top !== window.self || location.origin !== credential.origin || location.hostname !== credential.rpId) throw new Error('Open the original passkey site directly over HTTPS or localhost.');
   const result = await navigator.credentials.get({ signal, publicKey: { challenge: new Uint8Array(hexToBytes(challenge)), rpId: credential.rpId,
@@ -56,8 +67,8 @@ async function prfApproval(credential: PasskeyCredential, challenge: Hex, signal
     extensions: { prf: { eval: { first: hexToBytes(FALCON_PRF_SALT) } } } as AuthenticationExtensionsClientInputs,
   } }) as PublicKeyCredential | null;
   if (!result) throw new Error('Passkey approval cancelled.');
-  const seed = (result.getClientExtensionResults() as { prf?: { results?: { first?: ArrayBuffer } } }).prf?.results?.first;
-  if (!seed || seed.byteLength !== 32) throw new Error('This credential cannot produce the required PRF seed. No fallback signature is allowed.');
+  const seed = ownedPrfSeed((result.getClientExtensionResults() as { prf?: { results?: { first?: BufferSource } } }).prf?.results?.first);
+  if (!seed) throw new Error('This credential cannot produce the required PRF seed. No fallback signature is allowed.');
   try {
     parsePasskeyProof(result.response as AuthenticatorAssertionResponse, credential, challenge);
     return { seed };

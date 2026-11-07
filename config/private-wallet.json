@@ -1,0 +1,25 @@
+{
+  "network": "devnet",
+  "genesisHash": "0xcd2c67c2bd8cb5458eb2d878877668a0b86ed19fed44fbc874f3254106b97b88",
+  "startBlock": "0x3ceb",
+  "contracts": {
+    "pool": "0x1628d0de2429e1b50e882aec52f2f5631aa66358",
+    "swap": "0xf4d1eac2709d9f1e4d577cfebeba415a647da016",
+    "aqua": "0xac0ab456e3fcb671da8b929e67b4b766758e85f4",
+    "tokenA": "0x8acb6fed713016f9a60e824dd7e99edf5dc91806",
+    "tokenB": "0xc0a35029991fc2e3d1bb743382414c2fc3d724a1"
+  },
+  "codeHashes": {
+    "pool": "0x961b5d92bc024b170e1ab8c4b8e0b987c44e3a62ed78770a1d0b5409e64537ff",
+    "swap": "0x351a4a0fdc572edc4c21ed356395553defc393dad00769e06fda1c64a178e6c7",
+    "aqua": "0xcbaea9a94ba202f5dc2e9bf8ec083178498b2e79088a8da4daca367a0b72452b",
+    "tokenA": "0x9067187682ce56f891a147ea3c3a1be2caec4c2fbbef59cc80d04c9d251eed8b",
+    "tokenB": "0x9067187682ce56f891a147ea3c3a1be2caec4c2fbbef59cc80d04c9d251eed8b"
+  },
+  "faucet": {
+    "address": "0xd236920c7738e6e79b6b44d3febafc870938ce41",
+    "codeHash": "0xfe62e3d88fd2261301c942c7eacd5287e567149853604fe0073c32c06dc934b0",
+    "grant": "1000",
+    "cooldownSeconds": 86400
+  }
+}

@@ -11,7 +11,9 @@ Open **http://localhost:3000/app**. The app performs real type-`0x06` transactio
 5. In **Rules**, lower the transfer cap and try an amount above it. The app rejects the draft before signing. Adjust the cap to permit the transfer and try again.
 6. In **Positions**, create a recurring fpASSET buy with an fpUSD budget, per-period allowance, fixed price, and expiry. Share its order JSON with another account, which can import and fill it. Cancel to stop further fills.
 
-Every write has an explicit review. Recent activity links to the local explorer, and confirmation requires successful receipts for every frame. If inclusion times out, the app saves the hash and blocks another submission until receipt inspection resolves it.
+Every write has an explicit review. Recent activity offers **View transaction**, which reads block, receipt, frame, gas and admission details from the selected RPC and links to the explorer with that gateway selected. Confirmation requires successful receipts for every frame. If inclusion times out, the app saves the hash and blocks another submission until receipt inspection resolves it.
+
+The **Privacy** tab adds separate shield, private transfer, maker inventory, swap and unshield controls backed by `@framepay/privacy`. Your passkey unlocks deterministic private keys and real RAILGUN proof generation inside a browser worker; ETHFalcon authorizes the final wallet batch onchain. A one-click sponsored faucet delivers 1,000 FPA and 1,000 FPB to the smart wallet. See [private payments](private-payments.md#poc-controls-and-transaction-inspection) for setup and scope.
 
 The community position starts with 1,000 fpUSD, buys at 10 fpUSD per fpASSET, permits 100 fpUSD of fills per minute, and expires after 30 days. Capacity is finite and unused period capacity does not carry over. A recurring position makes liquidity available on a schedule; fills still require a taker transaction. There is no automatic buying bot.
 

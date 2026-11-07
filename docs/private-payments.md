@@ -1,6 +1,32 @@
 # Private payments and maker inventory
 
-FramePay ports `private-poc-bundle` into a Foundry contract project and the Node-oriented `@framepay/privacy` TypeScript workspace. New implementation, tooling, and tests use TypeScript and Solidity. Effect services separate proof generation, RPC access, and frame submission. The existing public DeFi app remains the public trading interface; this integration is available through the package and devnet demo CLI.
+FramePay ports `private-poc-bundle` into a Foundry contract project and the Node-oriented `@framepay/privacy` TypeScript workspace. New implementation, tooling, and tests use TypeScript and Solidity. Effect services separate proof generation, RPC access, and frame submission. The POC's **Privacy** tab exposes separate controls backed by this package; the devnet demo CLI remains available for the full regression scenario.
+
+## POC controls and transaction inspection
+
+Run `bun run poc:dev` and open `http://localhost:3000/app`. Select **Framecraft devnet → Privacy**, then create or restore a PRF-capable passkey wallet and deploy it. The browser worker and verified circuit assets are built with the POC; missing circuit files are downloaded and SHA-256 checked. No Foundry installation is needed to use the already deployed contracts.
+
+**Faucet · Get test tokens** sends 1,000 FPA and 1,000 FPB directly to the connected smart wallet in one sponsored frame transaction. This is a public grant of faucet-owned test assets, so it does not request a passkey or require the recipient to have ETH. The onchain faucet permits one grant per smart wallet every 24 hours. It was initially funded with 100,000 of each token; `bun run private:faucet:deploy` deploys or replenishes it using the local test treasury. The hosted UI needs neither a treasury key nor a Node signing service. Grants are finite, and the hash is saved before submission and remains inspectable after a timeout.
+
+**Unlock & refresh** requests passkey user verification. The existing Falcon PRF output passes through HKDF-SHA256 with a separate privacy domain, genesis and smart-wallet address. An owner check confirms that the passkey still derives the recorded Falcon public key. A fresh browser worker derives three deterministic RAILGUN pockets: your wallet, your trading pocket and your inventory. The original Falcon seed, private entropy, mnemonics, viewing keys and spending keys are never sent to the server or saved in browser storage. Accessible byte buffers are cleared and the worker terminates after each operation; JavaScript cannot guarantee erasure of every internal copy. Keep the same passkey and exported public wallet metadata to recover these notes. The old disposable CLI balances remain with their original keys.
+
+The six separate controls are:
+
+- **Shield:** approve the exact public smart-wallet token amount, shield to your chosen pocket, and clear the allowance in one atomic wallet batch. The pool deducts 0.25%.
+- **Private transfer:** transfer to another one of your pockets or a standard `0zk…` RAILGUN receiving address.
+- **Add/remove inventory:** move notes between your wallet and your inventory.
+- **Private swap:** demonstrate an exact-output-bound swap between the pocket selected under **Pay from** (your wallet by default, or your trading pocket) and your own inventory. The output returns to that same selected pocket. This is not an external maker order book.
+- **Unshield:** withdraw to your smart wallet or another public address, net of the 0.25% fee.
+
+Each spending action requests a passkey to unlock notes and generate the real Groth16 proof in the browser. Proof preparation cannot submit a transaction. The app then shows the exact wallet batch; **Confirm & send** requests a second passkey approval, regenerates the Falcon signer and verifies its signature onchain. A three-frame transaction contains relay execution approval, paymaster payment approval and SENDER execution of the ETHFalcon wallet batch. The exact hash is persisted before the single broadcast. Pending outcomes block further submissions until inspected.
+
+Spending controls show the largest available single note. The current one-input circuit cannot combine fragmented balances: separate 200 FPB and 50 FPB notes require two withdrawals. Private balances are snapshots; after confirmation, explicitly unlock and rescan. The UI never triggers a background biometric prompt. RAILGUN's Groth16/EdDSA privacy layer remains classical cryptography even though the outer smart wallet uses ETHFalcon. The outer smart-wallet address is public, so this flow does not hide which smart wallet submits each operation.
+
+**View transaction** reads the selected RPC's native transaction, receipt and optional sidecar history. It shows frames, approvals, block/hash, confirmations, gas, calldata and logs. Explorer links include the configured RPC in the `node` parameter. Missing sidecar history does not invalidate a mined receipt.
+
+The private signer and proof worker run in the browser, including when the app is hosted on Vercel. Serve the generated `/privacy/` and `/ethfalcon/` assets and use an HTTPS origin with a PRF-capable passkey. The old `/api/private` Node-wallet endpoint is retired and responds with HTTP 410. The independent `private:poc` CLI still operates its separate disposable test wallets.
+
+`bun run private:browser:check` exercises the UI with a disposable Chrome CTAP2.1 virtual authenticator and real devnet transactions. It checks the faucet, private actions, two passkey approvals, deterministic recovery, cancellation before submission and transaction details. It never uses a user's passkey.
 
 ## Bundle analysis and implementation map
 
